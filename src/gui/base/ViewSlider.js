@@ -16,6 +16,28 @@ import {AriaLandmarks} from "../AriaUtils"
 
 assertMainOrNode()
 
+export interface IViewSlider {
+	focusedColumn: ViewColumn;
+
+	isFocusPreviousPossible(): boolean;
+
+	isFirstBackgroundColumnFocused(): boolean;
+
+	isForegroundColumnFocused(): boolean;
+
+	getPreviousColumn(): ?ViewColumn;
+
+	focusPreviousColumn(): void;
+
+	focusNextColumn(): void;
+
+	getBackgroundColumns(): ViewColumn[];
+
+	isUsingOverlayColumns(): boolean;
+
+	getMainColumn(): ViewColumn;
+}
+
 export type GestureInfo = {
 	x: number,
 	y: number,

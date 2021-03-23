@@ -90,9 +90,11 @@ export class ContactAggregateEditor implements MComponent<AggregateEditorAttrs<*
 			domElement.style.opacity = "0"
 		}
 
+		const firstAnimation: AnimationPromise = animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true))
+		const secondAnimation: AnimationPromise = animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0))
 		return Promise.all([
-			animations.add(domElement, fadein ? opacity(0, 1, true) : opacity(1, 0, true)),
-			animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).tap(() => {
+			firstAnimation,
+			secondAnimation.tap(() => {
 				domElement.style.height = ''
 			})
 		])

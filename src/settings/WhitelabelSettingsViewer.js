@@ -70,6 +70,7 @@ import {showWhitelabelBuyDialog} from "../subscription/BuyDialog"
 import {createNotAvailableForFreeClickHandler, showNotAvailableForFreeDialog} from "../misc/SubscriptionDialogs"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
 import {CUSTOM_MIN_ID, GENERATED_MAX_ID} from "../api/common/utils/EntityUtils"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 assertMainOrNode()
 

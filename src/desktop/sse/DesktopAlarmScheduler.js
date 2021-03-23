@@ -226,27 +226,27 @@ export function occurrenceIterator(): {|
 		next() {
 			let newOccurrence
 			if (this.numYieldedOccurrences < maxOccurrences && !!this.nextYieldedOccurrence) {
-				newOccurrence = new Date(this.nextYieldedOccurrence.getTime())
+				const safeOccurrence = newOccurrence = new Date(this.nextYieldedOccurrence.getTime())
 				switch (this.occurrenceIncrement) {
 					case RepeatPeriod.DAILY:
-						newOccurrence.setDate(newOccurrence.getDate() + this.occurrenceInterval)
+						newOccurrence.setDate(safeOccurrence.getDate() + this.occurrenceInterval)
 						break
 					case RepeatPeriod.WEEKLY:
-						newOccurrence.setDate(newOccurrence.getDate() + this.occurrenceInterval * 7)
+						newOccurrence.setDate(safeOccurrence.getDate() + this.occurrenceInterval * 7)
 						break
 					case RepeatPeriod.MONTHLY: {
 						const newMonth = newOccurrence.getMonth() + this.occurrenceInterval
-						const daysInNewMonth = new Date(newOccurrence.getFullYear(), newMonth + 1, 0).getDate()
+						const daysInNewMonth = new Date(safeOccurrence.getFullYear(), newMonth + 1, 0).getDate()
 						const newDay = Math.min(firstOccurrence.getDate(), daysInNewMonth)
-						newOccurrence.setMonth(newMonth, newDay)
+						safeOccurrence.setMonth(newMonth, newDay)
 					}
 						break
 					case RepeatPeriod.ANNUALLY:
 						const newYear = newOccurrence.getFullYear() + this.occurrenceInterval
-						const newMonth = newOccurrence.getMonth()
+						const newMonth = safeOccurrence.getMonth()
 						const daysInNewMonth = new Date(newYear, newMonth + 1, 0).getDate()
 						const newDay = Math.min(firstOccurrence.getDate(), daysInNewMonth)
-						newOccurrence.setFullYear(newYear, newMonth, newDay)
+						safeOccurrence.setFullYear(newYear, newMonth, newDay)
 						break
 				}
 

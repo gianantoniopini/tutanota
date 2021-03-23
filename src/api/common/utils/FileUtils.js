@@ -78,7 +78,8 @@ export function deduplicateFilenames(filenames: Array<string>, _taken: $ReadOnly
 	const deduplicatedNames = new Set(filenames.map(toLowerCase))
 	if (deduplicatedNames.size === filenames.length && union(deduplicatedNames, taken).size === 0) {
 		// if all file names are good then just return an identity map
-		return filenames.reduce((map, name) => ({...map, name: [name]}), {}) // convert into map oldname -> [newname]
+		const namesMap = ({}: {[string]: Array<string>})
+		return filenames.reduce((map, name) => ({...map, name: [name]}), namesMap) // convert into map oldname -> [newname]
 	}
 
 	const suffix = (name, number) => {

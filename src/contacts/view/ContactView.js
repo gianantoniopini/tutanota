@@ -47,6 +47,7 @@ import {isSameId} from "../../api/common/utils/EntityUtils";
 import type {ContactModel} from "../model/ContactModel"
 import {createDropDownButton} from "../../gui/base/Dropdown";
 import {ActionBar} from "../../gui/base/ActionBar"
+import type {IViewSlider} from "../../gui/base/ViewSlider"
 
 assertMainOrNode()
 

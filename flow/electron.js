@@ -1,7 +1,5 @@
-import type {IncomingMessage} from "electron"
-import type {ElectronHttpExecutor} from "electron-updater/out/electronHttpExecutor"
 // We should not do real imports here but we somehow cannot write "extends" with type in Flow
-import EventEmitter from 'events'
+// import EventEmitter from 'events'
 
 /**
  * this file is highly inaccurate, check the docs at electronjs.org
@@ -66,9 +64,9 @@ declare module 'electron' {
 		}
 	}
 
-	declare export type IncomingMessage = {
-		on('error' | 'data' | 'end', (any) => void): IncomingMessage,
-	}
+	// declare export type IncomingMessage = {
+	// 	on('error' | 'data' | 'end', (any) => void): IncomingMessage,
+	// }
 
 	// tutao: our own definitions to make it more readable
 	declare type MenuItemRole = 'undo'

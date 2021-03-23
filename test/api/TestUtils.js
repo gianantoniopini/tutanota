@@ -128,7 +128,7 @@ export function makeTimeoutMock(): TimeoutMock {
 	timeoutMock.next = function () {
 		return deferred.resolve()
 	}
-	return timeoutMock
+	return downcast(timeoutMock)
 }
 
 /** Catch error and return either value or error */

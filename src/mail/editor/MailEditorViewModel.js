@@ -178,11 +178,11 @@ export function getConfidentialStateMessage(isConfidential: boolean): string {
 
 export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 
-	model: SendMailModel
-	field: RecipientField
-	component: BubbleTextField<RecipientInfo>
-	bubbleDeleted: Bubble<RecipientInfo> => void
-	_contactModel: ContactModel
+	model: SendMailModel;
+	field: RecipientField;
+	component: BubbleTextField<RecipientInfo>;
+	+bubbleDeleted: Bubble<RecipientInfo> => void;
+	_contactModel: ContactModel;
 
 	constructor(model: SendMailModel, fieldType: RecipientField, contactModel: ContactModel) {
 

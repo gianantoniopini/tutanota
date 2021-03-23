@@ -47,6 +47,7 @@ export class RequestError {
 	}
 }
 
+type Command = (msg: Request) => Promise<any>
 
 export class Queue {
 	/**

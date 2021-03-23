@@ -1,5 +1,5 @@
 // @flow
-import type {ElectronSession} from 'electron'
+import type {DownloadItem, ElectronSession} from 'electron'
 import type {DesktopConfig} from "./config/DesktopConfig"
 import path from "path"
 import {assertNotNull, downcast, noOp} from "../api/common/utils/Utils"
@@ -7,11 +7,10 @@ import {lang} from "../misc/LanguageViewModel"
 import type {DesktopNetworkClient} from "./DesktopNetworkClient"
 import {FileOpenError} from "../api/common/error/FileOpenError"
 import type {ApplicationWindow} from "./ApplicationWindow"
-import {EventEmitter} from 'events'
+import EventEmitter from 'events'
 import {log} from "./DesktopLog";
 import {looksExecutable, nonClobberingFilename} from "./PathUtils"
 import type {DesktopUtils} from "./DesktopUtils"
-import type {DownloadItem} from "electron"
 import {promises as fs} from "fs"
 
 
@@ -40,8 +39,8 @@ export class DesktopDownloadManager {
 
 	async downloadNative(sourceUrl: string, fileName: string, headers: {v: string, accessToken: string}): Promise<{statusCode: string, statusMessage: string, encryptedFileUri: string}> {
 		return new Promise(async (resolve, reject) => {
-		const downloadDirectory = await this.getTutanotaTempDirectory("download")
-		const encryptedFileUri = path.join(downloadDirectory, fileName)
+			const downloadDirectory = await this.getTutanotaTempDirectory("download")
+			const encryptedFileUri = path.join(downloadDirectory, fileName)
 			const fileStream = this._fs.createWriteStream(encryptedFileUri, {emitClose: true})
 			                       .on('finish', () => fileStream.close()) // .end() was called, contents is flushed -> release file desc
 			let cleanup = e => {

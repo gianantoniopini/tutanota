@@ -130,7 +130,8 @@ export function replaceCidsWithInlineImages(dom: HTMLElement, inlineImages: Inli
 					imageElement.addEventListener("touchmove", (e: TouchEvent) => {
 						const touch = e.touches[0]
 						if (!touch || !startCoords || !timeoutId) return
-						if (Math.abs(touch.clientX - startCoords.x) > 40 || Math.abs(touch.clientY - startCoords.y) > 40) {
+						const safeStartCoords = startCoords
+						if (Math.abs(touch.clientX - safeStartCoords.x) > 40 || Math.abs(touch.clientY - safeStartCoords.y) > 40) {
 							clearTimeout(timeoutId)
 						}
 					})

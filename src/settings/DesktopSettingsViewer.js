@@ -19,6 +19,7 @@ import type {UpdateHelpLabelAttrs} from "./DesktopUpdateHelpLabel"
 import {DesktopUpdateHelpLabel} from "./DesktopUpdateHelpLabel"
 import type {MailExportMode} from "../mail/export/Exporter"
 import type {NativeWrapper} from "../native/common/NativeWrapper"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 assertMainOrNode()
 

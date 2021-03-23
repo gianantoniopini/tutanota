@@ -1,6 +1,6 @@
 // @flow
 //@bundleInto:common-min
-import {downcast} from "./utils/Utils"
+import {downcast, typedKeys} from "./utils/Utils"
 import type {GroupMembership} from "../entities/sys/GroupMembership"
 import type {MailFolder} from "../entities/tutanota/MailFolder"
 import type {ContactSocialId} from "../entities/tutanota/ContactSocialId"
@@ -12,11 +12,11 @@ import type {CalendarEventAttendee} from "../entities/tutanota/CalendarEventAtte
 import {isAdminClient, isApp, isDesktop} from "./Env"
 
 
-export const reverse: <K, V>({[K]: V}) => {[V]: K} = (objectMap) => Object.keys(objectMap)
-                                                                          .reduce((r, k) => {
-	                                                                          const v = objectMap[downcast(k)]
-	                                                                          return Object.assign(r, {[v]: k})
-                                                                          }, {})
+export const reverse: <K, V>({[K]: V}) => {[V]: K} = (objectMap) => typedKeys(objectMap)
+	.reduce((r, k) => {
+		const v = objectMap[downcast(k)]
+		return Object.assign(r, {[v]: k})
+	}, {})
 // Also used in other projects
 export type $Reversed<T> = $Call<typeof reverse, T>
 

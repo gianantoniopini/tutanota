@@ -1,4 +1,3 @@
-import {Request} from "../../src/api/common/WorkerProtocol"
 import {AssociationType, Cardinality, Type, ValueType} from "../../src/api/common/EntityConstants"
 import type {BootstrapFeatureTypeEnum, PaymentMethodTypeEnum} from "../../src/api/common/TutanotaConstans"
 import type {Theme} from "../../src/gui/theme"
@@ -231,7 +230,6 @@ type JsRequestType = 'createMailEditor'
 	| 'updateTargetUrl'
 
 type Callback<T> = (err: ?Error, data?: T) => void
-type Command = (msg: Request) => Promise<any>
 
 
 // EntityConstants

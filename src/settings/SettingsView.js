@@ -47,6 +47,12 @@ import {isSameId} from "../api/common/utils/EntityUtils";
 
 assertMainOrNode()
 
+export interface UpdatableSettingsViewer {
+	view(): Children;
+
+	entityEventsReceived(updates: $ReadOnlyArray<EntityUpdateData>): Promise<void>;
+}
+
 export class SettingsView implements CurrentView {
 
 	view: Function;

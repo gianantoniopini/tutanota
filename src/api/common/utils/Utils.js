@@ -122,9 +122,9 @@ export function downcast<R>(object: *): R {
 
 export function clone<T>(instance: T): T {
 	if (instance instanceof Uint8Array) {
-		return instance.slice()
+		return downcast(instance.slice())
 	} else if (instance instanceof Array) {
-		return instance.map(i => clone(i))
+		return downcast(instance.map(i => clone(i)))
 	} else if (instance instanceof Date) {
 		return (new Date(instance.getTime()): any)
 	} else if (instance instanceof TypeRef) {

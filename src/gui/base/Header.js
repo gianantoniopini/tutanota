@@ -19,6 +19,7 @@ import {client} from "../../misc/ClientDetector"
 import {CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, navButtonRoutes, SEARCH_PREFIX} from "../../misc/RouteChange"
 import {AriaLandmarks, landmarkAttrs} from "../AriaUtils"
 import type {ProgressTracker} from "../../api/main/ProgressTracker"
+import type {IViewSlider} from "./ViewSlider"
 
 const LogoutPath = '/login?noAutoLogin=true'
 export const LogoutUrl: string = location.hash.startsWith("#mail")

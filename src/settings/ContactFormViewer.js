@@ -31,6 +31,7 @@ import type {ContactForm} from "../api/entities/tutanota/ContactForm"
 import type {EntityUpdateData} from "../api/main/EventController"
 import {getGroupInfoDisplayName} from "../api/common/utils/GroupUtils";
 import {showBuyDialog} from "../subscription/BuyDialog"
+import type {UpdatableSettingsViewer} from "./SettingsView"
 
 assertMainOrNode()
 

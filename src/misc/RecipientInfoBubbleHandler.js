@@ -16,10 +16,10 @@ export type RecipientInfoBubble = Bubble<RecipientInfo>
 
 export interface RecipientInfoBubbleFactory {
 	// Create a Recipient Info Bubble or none if invalid (ie. mailaddress already exists)
-	createBubble(name: ?string, mailAddress: string, contact: ?Contact): Bubble<RecipientInfo>,
+	createBubble(name: ?string, mailAddress: string, contact: ?Contact): Bubble<RecipientInfo>;
 
 	// If the bubbleFactory also has to deal with state, then it probably wants to know when a bubble is deleted from the text field
-	bubbleDeleted?: Bubble<RecipientInfo> => void
+	+bubbleDeleted: ?(Bubble<RecipientInfo> => void);
 }
 
 export class RecipientInfoBubbleHandler implements BubbleHandler<RecipientInfo, ContactSuggestion> {
