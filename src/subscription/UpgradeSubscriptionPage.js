@@ -20,11 +20,17 @@ import {getSubscriptionPrice} from "./PriceUtils"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 
+	oncreate(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): void {
+		const location = vnode.attrs.data.location
+		if (location) {
+			// We automatically route to the next page; when we want to go back from the second page, we do not want to keep calling nextPage
+			vnode.attrs.data.location = ""
+			gatherInformationForNextPage(location, vnode.attrs.data, () => this.showNextPage(vnode))
+		}
+	}
+
 	view(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const data = vnode.attrs.data
-		const showNextPage = () => {
-			emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
-		}
 		const subscriptionActionButtons: SubscriptionActionButtons = {
 			Free: {
 				view: () => {
@@ -36,7 +42,7 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 									data.type = SubscriptionType.Free
 									data.price = "0"
 									data.priceNextYear = "0"
-									showNextPage()
+									this.showNextPage(vnode)
 								}
 							})
 						},
@@ -44,11 +50,11 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 					})
 				}
 			},
-			Premium: createUpgradeButton(data, showNextPage, SubscriptionType.Premium),
-			PremiumBusiness: createUpgradeButton(data, showNextPage, SubscriptionType.PremiumBusiness),
-			Teams: createUpgradeButton(data, showNextPage, SubscriptionType.Teams),
-			TeamsBusiness: createUpgradeButton(data, showNextPage, SubscriptionType.TeamsBusiness),
-			Pro: createUpgradeButton(data, showNextPage, SubscriptionType.Pro)
+			Premium: createUpgradeButton(data, () => this.showNextPage(vnode), SubscriptionType.Premium),
+			PremiumBusiness: createUpgradeButton(data, () => this.showNextPage(vnode), SubscriptionType.PremiumBusiness),
+			Teams: createUpgradeButton(data, () => this.showNextPage(vnode), SubscriptionType.Teams),
+			TeamsBusiness: createUpgradeButton(data, () => this.showNextPage(vnode), SubscriptionType.TeamsBusiness),
+			Pro: createUpgradeButton(data, () => this.showNextPage(vnode), SubscriptionType.Pro)
 		}
 		return m("#upgrade-account-dialog.pt", [
 				m(SubscriptionSelector, {
@@ -68,6 +74,10 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 			]
 		)
 	}
+
+	showNextPage(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): void {
+		emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
+	}
 }
 
 
@@ -76,13 +86,7 @@ function createUpgradeButton(data: UpgradeSubscriptionData, showNextPage: () => 
 		view: () => {
 			return m(ButtonN, {
 				label: "pricing.select_action",
-				click: () => {
-					data.type = subscriptionType
-					data.price = String(getSubscriptionPrice(data, subscriptionType, UpgradePriceType.PlanActualPrice))
-					let nextYear = String(getSubscriptionPrice(data, subscriptionType, UpgradePriceType.PlanNextYearsPrice))
-					data.priceNextYear = (data.price !== nextYear) ? nextYear : null
-					showNextPage()
-				},
+				click: () => goToNextPage(data, showNextPage, subscriptionType),
 				type: ButtonType.Login,
 			})
 		}
@@ -146,6 +150,7 @@ function confirmFreeSubscription(): Promise<boolean> {
 export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
 
 	data: UpgradeSubscriptionData
+	subscriptionType: ?string
 
 	constructor(upgradeData: UpgradeSubscriptionData) {
 		this.data = upgradeData
@@ -168,4 +173,33 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 		return isTutanotaDomain() && !(isApp() && client.isIos())
 	}
 
+}
+
+function gatherInformationForNextPage(location: string, data: UpgradeSubscriptionData, showNextPage: () => void): void {
+	if (location.includes('type=free')) {
+		confirmFreeSubscription().then(confirmed => {
+			if (confirmed) {
+				data.type = SubscriptionType.Free
+				data.price = "0"
+				data.priceNextYear = "0"
+				showNextPage()
+			}
+		})
+	} else if (location.includes('type=premiumBusiness')) {
+		goToNextPage(data, showNextPage, SubscriptionType.PremiumBusiness)
+	} else if (location.includes('type=premium')) {
+		goToNextPage(data, showNextPage, SubscriptionType.Premium)
+	} else if (location.includes('type=teamsBusiness')) {
+		goToNextPage(data, showNextPage, SubscriptionType.TeamsBusiness)
+	} else if (location.includes('type=teams')) {
+		goToNextPage(data, showNextPage, SubscriptionType.Teams)
+	}
+}
+
+function goToNextPage(data: UpgradeSubscriptionData, showNextPage: () => void, subscriptionType: SubscriptionTypeEnum): void {
+	data.type = SubscriptionType.PremiumBusiness
+	data.price = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanActualPrice))
+	let nextYear = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanNextYearsPrice))
+	data.priceNextYear = (data.price !== nextYear) ? nextYear : null
+	showNextPage()
 }

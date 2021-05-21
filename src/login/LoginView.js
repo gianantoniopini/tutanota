@@ -75,11 +75,8 @@ export class LoginView {
 			.then(module => new module.LoginViewController(this))
 
 		if (window.location.href.includes('signup')) {
-			if (window.location.hash.includes('theme=blue')) {
-				themeManager.setThemeId('blue')
-			}
 			this.permitAutoLogin = false
-			this._signup()
+			this._signup(window.location.hash)
 		} else if (window.location.href.endsWith('recover')) {
 			this.permitAutoLogin = false
 			import("./recover/RecoverLoginDialog").then((dialog) => dialog.show())
@@ -308,16 +305,16 @@ export class LoginView {
 		m.redraw()
 	}
 
-	_signup() {
+	_signup(location: string) {
 		if (!this._showingSignup) {
 			this._showingSignup = true
-			showProgressDialog('loading_msg', this._viewController.then(c => c.loadSignupWizard())).then(dialog => dialog.show())
+			showProgressDialog('loading_msg', this._viewController.then(c => c.loadSignupWizard(location))).then(dialog => dialog.show())
 		}
 	}
 
 	updateUrl(args: Object, requestedPath: string) {
 		if (requestedPath.startsWith("/signup")) {
-			this._signup()
+			this._signup(window.location.hash)
 			return
 		} else if (requestedPath.startsWith("/recover") || requestedPath.startsWith("/takeover")) {
 			return

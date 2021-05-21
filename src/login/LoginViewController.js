@@ -53,7 +53,7 @@ export interface ILoginViewController {
 
 	migrateDeviceConfig(oldCredentials: Object[]): Promise<void>;
 
-	loadSignupWizard(): Promise<{+show: Function}>;
+	loadSignupWizard(location: string): Promise<{+show: Function}>;
 }
 
 export class LoginViewController implements ILoginViewController {
@@ -331,9 +331,9 @@ export class LoginViewController implements ILoginViewController {
 		})
 	}
 
-	loadSignupWizard(): Promise<{+show: () => any}> {
+	loadSignupWizard(location: string): Promise<{+show: () => any}> {
 		return worker.initialized
 		             .then(() => import("../subscription/UpgradeSubscriptionWizard")
-			             .then((wizard) => wizard.loadSignupWizard()))
+			             .then((wizard) => wizard.loadSignupWizard(location)))
 	}
 }

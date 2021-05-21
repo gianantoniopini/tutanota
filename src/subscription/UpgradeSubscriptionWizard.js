@@ -56,6 +56,7 @@ export type UpgradeSubscriptionData = {
 	upgradeType: UpgradeTypeEnum,
 	planPrices: SubscriptionPlanPrices,
 	currentSubscription: ?SubscriptionTypeEnum,
+	location: ?string
 }
 
 const TOKEN_PARAM_NAME = "#token="
@@ -132,7 +133,8 @@ export function showUpgradeWizard(): void {
 						campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 						upgradeType: UpgradeType.Initial,
 						planPrices: planPrices,
-						currentSubscription: SubscriptionType.Free
+						currentSubscription: SubscriptionType.Free,
+						location: ""
 					}
 					const wizardPages = [
 						{
@@ -155,7 +157,7 @@ export function showUpgradeWizard(): void {
 		)
 }
 
-export function loadSignupWizard(): Promise<Dialog> {
+export function loadSignupWizard(location: string): Promise<Dialog> {
 	return loadUpgradePrices().then(prices => {
 		const planPrices: SubscriptionPlanPrices = {
 			Premium: prices.premiumPrices,
@@ -188,7 +190,8 @@ export function loadSignupWizard(): Promise<Dialog> {
 			campaignInfoTextId: prices.messageTextId ? assertTranslation(prices.messageTextId) : null,
 			upgradeType: UpgradeType.Signup,
 			planPrices: planPrices,
-			currentSubscription: null
+			currentSubscription: null,
+			location: location
 		}
 		const wizardPages = [
 			{

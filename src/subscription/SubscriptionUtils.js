@@ -37,7 +37,7 @@ export type SubscriptionTypeEnum = $Values<typeof SubscriptionType>;
 
 export const UpgradeType = {
 	Signup: 'Signup', // during signup
-	Initial: 'Initial', // when logged in into Free account
+	Initial: 'Initial', // when logged into Free account
 	Switch: 'Switch' // switching in paid account
 }
 export type UpgradeTypeEnum = $Values<typeof UpgradeType>;
