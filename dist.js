@@ -100,7 +100,6 @@ async function doBuild() {
 		const {version} = JSON.parse(await fs.readFile("package.json", "utf8"))
 		await buildWebapp(version)
 		await buildDesktopClient(version)
-		await signDesktopClients()
 		await packageDeb(version)
 		await publish(version)
 		const now = new Date(Date.now()).toTimeString().substr(0, 5)
@@ -412,21 +411,6 @@ function packageDeb(version) {
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
-		if (options.stage === "release" || options.stage === "prod") {
-			console.log("create " + desktopDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop -v ${version} desktop/=${target}-desktop`.split(" "), {
-				cwd: __dirname + '/build',
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-		}
-
-		if (options.stage === "release" || options.stage === "test") {
-			console.log("create " + desktopTestDebName)
-			exitOnFail(spawnSync("/usr/local/bin/fpm", `-f -s dir -t deb --deb-user tutadb --deb-group tutadb -n tutanota-desktop-test -v ${version} desktop-test/=${target}-desktop`.split(" "), {
-				cwd: __dirname + '/build',
-				stdio: [process.stdin, process.stdout, process.stderr]
-			}))
-		}
 	}
 }
 
@@ -450,21 +434,6 @@ function publish(version) {
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
 
-		exitOnFail(spawnSync("/bin/cp", `-f build/${desktopDebName} /opt/repository/tutanota-desktop/`.split(" "), {
-			cwd: __dirname,
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-		exitOnFail(spawnSync("/bin/cp", `-f build/${desktopTestDebName} /opt/repository/tutanota-desktop-test/`.split(" "), {
-			cwd: __dirname,
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-
-		// copy appimage for dev_clients
-		exitOnFail(spawnSync("/bin/cp", `-f build/desktop/tutanota-desktop-linux.AppImage /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`.split(" "), {
-			cwd: __dirname,
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-
 		// user puppet needs to read the deb file from jetty
 		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota/${webAppDebName}`.split(" "), {
 			cwd: __dirname + '/build/',
@@ -472,16 +441,6 @@ function publish(version) {
 		}))
 
 		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop/${desktopDebName}`.split(" "), {
-			cwd: __dirname + '/build/',
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/tutanota-desktop-test/${desktopTestDebName}`.split(" "), {
-			cwd: __dirname + '/build/',
-			stdio: [process.stdin, process.stdout, process.stderr]
-		}))
-		// in order to release this new version locally, execute:
-		// mv /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage /opt/repository/dev_client/tutanota-desktop-linux.AppImage
-		exitOnFail(spawnSync("/bin/chmod", `o+r /opt/repository/dev_client/tutanota-desktop-linux-new.AppImage`.split(" "), {
 			cwd: __dirname + '/build/',
 			stdio: [process.stdin, process.stdout, process.stderr]
 		}))
