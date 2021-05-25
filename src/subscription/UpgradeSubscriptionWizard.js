@@ -35,6 +35,12 @@ assertMainOrNode()
 
 const CAMPAIGN_KEY = "campaign"
 
+export type SubscriptionParameters = {
+	subscription: string,
+	type: string,
+	interval: string, // typed as string because m.parseQueryString returns an object with strings
+}
+
 export type NewAccountData = {
 	mailAddress: string,
 	recoverCode: Hex,
@@ -56,7 +62,7 @@ export type UpgradeSubscriptionData = {
 	upgradeType: UpgradeTypeEnum,
 	planPrices: SubscriptionPlanPrices,
 	currentSubscription: ?SubscriptionTypeEnum,
-	location: ?string
+	subscriptionParameters: ?SubscriptionParameters
 }
 
 const TOKEN_PARAM_NAME = "#token="
@@ -134,7 +140,7 @@ export function showUpgradeWizard(): void {
 						upgradeType: UpgradeType.Initial,
 						planPrices: planPrices,
 						currentSubscription: SubscriptionType.Free,
-						location: ""
+						subscriptionParameters: null
 					}
 					const wizardPages = [
 						{
@@ -157,7 +163,7 @@ export function showUpgradeWizard(): void {
 		)
 }
 
-export function loadSignupWizard(location: string): Promise<Dialog> {
+export function loadSignupWizard(subscriptionParameters: ?SubscriptionParameters): Promise<Dialog> {
 	return loadUpgradePrices().then(prices => {
 		const planPrices: SubscriptionPlanPrices = {
 			Premium: prices.premiumPrices,
@@ -191,7 +197,7 @@ export function loadSignupWizard(location: string): Promise<Dialog> {
 			upgradeType: UpgradeType.Signup,
 			planPrices: planPrices,
 			currentSubscription: null,
-			location: location
+			subscriptionParameters: subscriptionParameters
 		}
 		const wizardPages = [
 			{

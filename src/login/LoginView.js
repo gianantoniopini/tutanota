@@ -24,6 +24,7 @@ import {showUserError} from "../misc/ErrorHandlerImpl"
 import {LoginForm} from "./LoginForm"
 import {CredentialsSelector} from "./CredentialsSelector"
 import {themeManager} from "../gui/theme"
+import type {SubscriptionParameters} from "../subscription/UpgradeSubscriptionWizard"
 
 assertMainOrNode()
 
@@ -76,7 +77,12 @@ export class LoginView {
 
 		if (window.location.href.includes('signup')) {
 			this.permitAutoLogin = false
-			this._signup(window.location.hash)
+			const location = window.location.hash
+			if (location !== "") {
+				this._signup(m.parseQueryString(location.substring(1)))
+			} else {
+				this._signup()
+			}
 		} else if (window.location.href.endsWith('recover')) {
 			this.permitAutoLogin = false
 			import("./recover/RecoverLoginDialog").then((dialog) => dialog.show())
@@ -305,16 +311,21 @@ export class LoginView {
 		m.redraw()
 	}
 
-	_signup(location: string) {
+	_signup(parameters: ?SubscriptionParameters) {
 		if (!this._showingSignup) {
 			this._showingSignup = true
-			showProgressDialog('loading_msg', this._viewController.then(c => c.loadSignupWizard(location))).then(dialog => dialog.show())
+			showProgressDialog('loading_msg', this._viewController.then(c => c.loadSignupWizard(parameters))).then(dialog => dialog.show())
 		}
 	}
 
 	updateUrl(args: Object, requestedPath: string) {
 		if (requestedPath.startsWith("/signup")) {
-			this._signup(window.location.hash)
+			const location = window.location.hash
+			if (location !== "") {
+				this._signup(m.parseQueryString(location.substring(1)))
+			} else {
+				this._signup()
+			}
 			return
 		} else if (requestedPath.startsWith("/recover") || requestedPath.startsWith("/takeover")) {
 			return

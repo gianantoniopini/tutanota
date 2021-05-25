@@ -7,6 +7,7 @@ import {SubscriptionType} from "./SubscriptionUtils"
 import type {WizardPageAttrs, WizardPageN} from "../gui/base/WizardDialogN"
 import {emitWizardEvent, WizardEventType} from "../gui/base/WizardDialogN"
 import {SignupForm} from "./SignupForm"
+import {neverNull} from "../api/common/utils/Utils"
 
 
 type ConfirmStatus = {
@@ -45,7 +46,7 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 	}
 
 	headerTitle(): string {
-		return lang.get("subscription_label")
+		return String(this.data.type)
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
