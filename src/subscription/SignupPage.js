@@ -46,7 +46,7 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 	}
 
 	headerTitle(): string {
-		return String(this.data.type)
+		return (String(this.data.type)).replace(/([a-z0-9])([A-Z])/g, '$1 $2')
 	}
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
