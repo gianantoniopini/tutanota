@@ -77,12 +77,7 @@ export class LoginView {
 
 		if (window.location.href.includes('signup')) {
 			this.permitAutoLogin = false
-			const location = window.location.hash
-			if (location !== "") {
-				this._signup(m.parseQueryString(location.substring(1)))
-			} else {
-				this._signup()
-			}
+			this.goToSignupWithPreselection(window.location.hash)
 		} else if (window.location.href.endsWith('recover')) {
 			this.permitAutoLogin = false
 			import("./recover/RecoverLoginDialog").then((dialog) => dialog.show())
@@ -320,17 +315,11 @@ export class LoginView {
 
 	updateUrl(args: Object, requestedPath: string) {
 		if (requestedPath.startsWith("/signup")) {
-			const location = window.location.hash
-			if (location !== "") {
-				this._signup(m.parseQueryString(location.substring(1)))
-			} else {
-				this._signup()
-			}
+			this.goToSignupWithPreselection(window.location.hash)
 			return
 		} else if (requestedPath.startsWith("/recover") || requestedPath.startsWith("/takeover")) {
 			return
 		} else if (requestedPath.startsWith("/giftcard")) {
-
 			const showWizardPromise =
 				import("../subscription/giftcards/GiftCardUtils")
 					.then(({getTokenFromUrl}) => getTokenFromUrl(location.hash))
@@ -453,6 +442,14 @@ export class LoginView {
 
 	openUrl(url: string) {
 		window.open(url, '_blank')
+	}
+
+	goToSignupWithPreselection(location: string): void {
+		if (location) { // parameter is always given, but can be empty string
+			this._signup(m.parseQueryString(location.substring(1))) // remove #
+		} else {
+			this._signup()
+		}
 	}
 
 	_switchDeleteCredentialsState(): void {
