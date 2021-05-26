@@ -3,6 +3,7 @@ import m from "mithril"
 import stream from "mithril/stream/stream.js"
 import {lang} from "../misc/LanguageViewModel"
 import type {SubscriptionParameters, UpgradeSubscriptionData} from "./UpgradeSubscriptionWizard"
+import {SubscriptionTypeParameter} from "./UpgradeSubscriptionWizard"
 import {SubscriptionSelector} from "./SubscriptionSelector"
 import {isApp, isTutanotaDomain} from "../api/common/Env"
 import {client} from "../misc/ClientDetector"
@@ -19,14 +20,17 @@ import {CheckboxN} from "../gui/base/CheckboxN"
 import {getSubscriptionPrice} from "./PriceUtils"
 
 export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
+	_dom: ?HTMLElement
 
 	oncreate(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): void {
+		this._dom = vnode.dom
+
 		const subscriptionParameters = vnode.attrs.data.subscriptionParameters
 		if (subscriptionParameters) {
 			// We automatically route to the next page; when we want to go back from the second page, we do not want to keep calling nextPage
 			vnode.attrs.data.subscriptionParameters = null
 			vnode.attrs.data.options.paymentInterval = stream(Number(subscriptionParameters.interval))
-			gatherInformationForNextPage(subscriptionParameters, vnode.attrs.data, () => this.showNextPage(vnode))
+			this.goToNextPageWithPreselectedSubscription(subscriptionParameters, vnode.attrs.data)
 		}
 	}
 
@@ -37,25 +41,16 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 				view: () => {
 					return m(ButtonN, {
 						label: "pricing.select_action",
-						click: () => {
-							confirmFreeSubscription().then(confirmed => {
-								if (confirmed) {
-									data.type = SubscriptionType.Free
-									data.price = "0"
-									data.priceNextYear = "0"
-									this.showNextPage(vnode)
-								}
-							})
-						},
+						click: () => this.selectFree(data),
 						type: ButtonType.Login,
 					})
 				}
 			},
-			Premium: createUpgradeButton(data, () => this.showNextPage(vnode), SubscriptionType.Premium),
-			PremiumBusiness: createUpgradeButton(data, () => this.showNextPage(vnode), SubscriptionType.PremiumBusiness),
-			Teams: createUpgradeButton(data, () => this.showNextPage(vnode), SubscriptionType.Teams),
-			TeamsBusiness: createUpgradeButton(data, () => this.showNextPage(vnode), SubscriptionType.TeamsBusiness),
-			Pro: createUpgradeButton(data, () => this.showNextPage(vnode), SubscriptionType.Pro)
+			Premium: this.createUpgradeButton(data, SubscriptionType.Premium),
+			PremiumBusiness: this.createUpgradeButton(data, SubscriptionType.PremiumBusiness),
+			Teams: this.createUpgradeButton(data, SubscriptionType.Teams),
+			TeamsBusiness: this.createUpgradeButton(data, SubscriptionType.TeamsBusiness),
+			Pro: this.createUpgradeButton(data, SubscriptionType.Pro)
 		}
 		return m("#upgrade-account-dialog.pt", [
 				m(SubscriptionSelector, {
@@ -76,20 +71,76 @@ export class UpgradeSubscriptionPage implements WizardPageN<UpgradeSubscriptionD
 		)
 	}
 
-	showNextPage(vnode: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): void {
-		emitWizardEvent(vnode.dom, WizardEventType.SHOWNEXTPAGE)
+	selectFree(data: UpgradeSubscriptionData) {
+		confirmFreeSubscription().then(confirmed => {
+			if (confirmed) {
+				data.type = SubscriptionType.Free
+				data.price = "0"
+				data.priceNextYear = "0"
+				this.showNextPage()
+			}
+		})
 	}
-}
 
+	showNextPage(): void {
+		if (this._dom) {
+			emitWizardEvent(this._dom, WizardEventType.SHOWNEXTPAGE)
+		}
+	}
 
-function createUpgradeButton(data: UpgradeSubscriptionData, showNextPage: () => void, subscriptionType: SubscriptionTypeEnum): Component {
-	return {
-		view: () => {
-			return m(ButtonN, {
-				label: "pricing.select_action",
-				click: () => goToNextPage(data, showNextPage, subscriptionType),
-				type: ButtonType.Login,
-			})
+	goToNextPageWithPreselectedSubscription(subscriptionParameters: SubscriptionParameters, data: UpgradeSubscriptionData): void {
+		if (subscriptionParameters.type === "private") {
+			switch (subscriptionParameters.subscription) {
+				case SubscriptionTypeParameter.FREE:
+					this.selectFree(data)
+					break
+				case SubscriptionTypeParameter.PREMIUM:
+					this.setNonFreeDataAndGoToNextPage(data, SubscriptionType.Premium)
+					break
+				case SubscriptionTypeParameter.TEAMS:
+					this.setNonFreeDataAndGoToNextPage(data, SubscriptionType.Teams)
+					break
+				default:
+					console.log("Unknown subscription passed: ", subscriptionParameters)
+					break
+			}
+		} else if (subscriptionParameters.type === "business") {
+			switch (subscriptionParameters.subscription) {
+				case SubscriptionTypeParameter.PREMIUM:
+					this.setNonFreeDataAndGoToNextPage(data, SubscriptionType.PremiumBusiness)
+					break
+				case SubscriptionTypeParameter.TEAMS:
+					this.setNonFreeDataAndGoToNextPage(data, SubscriptionType.TeamsBusiness)
+					break
+				case SubscriptionTypeParameter.PRO:
+					this.setNonFreeDataAndGoToNextPage(data, SubscriptionType.Pro)
+					break
+				default:
+					console.log("Unknown subscription passed: ", subscriptionParameters)
+					break
+			}
+		} else {
+			console.log("Unknown subscription type passed: ", subscriptionParameters)
+		}
+	}
+
+	setNonFreeDataAndGoToNextPage(data: UpgradeSubscriptionData, subscriptionType: SubscriptionTypeEnum): void {
+		data.type = subscriptionType
+		data.price = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanActualPrice))
+		let nextYear = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanNextYearsPrice))
+		data.priceNextYear = (data.price !== nextYear) ? nextYear : null
+		this.showNextPage()
+	}
+
+	createUpgradeButton(data: UpgradeSubscriptionData, subscriptionType: SubscriptionTypeEnum): Component {
+		return {
+			view: () => {
+				return m(ButtonN, {
+					label: "pricing.select_action",
+					click: () => this.setNonFreeDataAndGoToNextPage(data, subscriptionType),
+					type: ButtonType.Login,
+				})
+			}
 		}
 	}
 }
@@ -149,7 +200,6 @@ function confirmFreeSubscription(): Promise<boolean> {
 }
 
 export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData> {
-
 	data: UpgradeSubscriptionData
 	subscriptionType: ?string
 
@@ -173,69 +223,4 @@ export class UpgradeSubscriptionPageAttrs implements WizardPageAttrs<UpgradeSubs
 	isEnabled(): boolean {
 		return isTutanotaDomain() && !(isApp() && client.isIos())
 	}
-
-}
-
-function gatherInformationForNextPage(subscriptionParameters: SubscriptionParameters, data: UpgradeSubscriptionData, showNextPage: () => void): void {
-	if (subscriptionParameters.type === "private") {
-		switch (subscriptionParameters.subscription) {
-			case "free":
-				confirmFreeSubscription().then(confirmed => {
-					if (confirmed) {
-						data.type = SubscriptionType.Free
-						data.price = "0"
-						data.priceNextYear = "0"
-						showNextPage()
-					}
-				})
-				break
-			case "premium":
-				goToNextPage(data, showNextPage, SubscriptionType.Premium)
-				break
-			case "teams":
-				goToNextPage(data, showNextPage, SubscriptionType.Teams)
-				break
-			default:
-				confirmFreeSubscription().then(confirmed => {
-					if (confirmed) {
-						data.type = SubscriptionType.Free
-						data.price = "0"
-						data.priceNextYear = "0"
-						showNextPage()
-					}
-				})
-				break
-		}
-	} else {
-		switch (subscriptionParameters.subscription) {
-			case "premium":
-				goToNextPage(data, showNextPage, SubscriptionType.PremiumBusiness)
-				break
-			case "teams":
-				goToNextPage(data, showNextPage, SubscriptionType.TeamsBusiness)
-				break
-			case "pro":
-				goToNextPage(data, showNextPage, SubscriptionType.Pro)
-				break
-			default:
-				confirmFreeSubscription().then(confirmed => {
-					if (confirmed) {
-						data.type = SubscriptionType.Free
-						data.price = "0"
-						data.priceNextYear = "0"
-						showNextPage()
-					}
-				})
-				break
-		}
-	}
-
-}
-
-function goToNextPage(data: UpgradeSubscriptionData, showNextPage: () => void, subscriptionType: SubscriptionTypeEnum): void {
-	data.type = subscriptionType
-	data.price = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanActualPrice))
-	let nextYear = String(getSubscriptionPrice(data, data.type, UpgradePriceType.PlanNextYearsPrice))
-	data.priceNextYear = (data.price !== nextYear) ? nextYear : null
-	showNextPage()
 }

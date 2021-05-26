@@ -41,6 +41,14 @@ export type SubscriptionParameters = {
 	interval: string, // typed as string because m.parseQueryString returns an object with strings
 }
 
+/** Subscription type passed from the website */
+export const SubscriptionTypeParameter = Object.freeze({
+	FREE: "free",
+	PREMIUM: "premium",
+	TEAMS: "teams",
+	PRO: "pro",
+}
+)
 export type NewAccountData = {
 	mailAddress: string,
 	recoverCode: Hex,
