@@ -5,27 +5,32 @@ import {assertMainOrNode} from "../api/common/Env"
 import {Dialog} from "../gui/base/Dialog"
 import {ButtonType} from "../gui/base/ButtonN"
 import type {Theme} from "../gui/theme"
-import {theme, themeManager} from "../gui/theme"
+import {themeManager} from "../gui/theme"
 import type {DialogHeaderBarAttrs} from "../gui/base/DialogHeaderBar"
-import {update} from "../api/main/Entity"
 import {Keys} from "../api/common/TutanotaConstants"
-import type {WhitelabelConfig} from "../api/entities/sys/WhitelabelConfig"
 import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import {TextFieldN} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {downcast} from "../api/common/utils/Utils"
+import type {SegmentControlItem} from "../gui/base/SegmentControl"
+import {SegmentControl} from "../gui/base/SegmentControl"
 
 assertMainOrNode()
 
 let COLOR_FORMAT = new RegExp("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
+
+export const SettingsState = Object.freeze({
+	Simple: 'Simple',
+	Advanced: 'Advanced'
+})
 
 export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	const colorFieldsAttrs = Object.keys(themeManager.getDefaultTheme())
 	                               .filter(name => name !== "logo")
 	                               .sort((a, b) => a.localeCompare(b))
 	                               .map(colorName => {
-	                               	       // value is closed over by injectionsRight,
-		                                   // so the color swatch will always be up to date with the contents of the text field
+			                               // value is closed over by injectionsRight,
+			                               // so the color swatch will always be up to date with the contents of the text field
 			                               const value = stream(themeToEdit[colorName] || "")
 			                               return {
 				                               label: () => colorName,
@@ -47,25 +52,37 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	const nbrOfLeftColors = Math.ceil(colorFieldsAttrs.length / 2.0)
 	const leftColumnsAttrs = colorFieldsAttrs.slice(0, nbrOfLeftColors)
 	const rightColumnsAttrs = colorFieldsAttrs.slice(nbrOfLeftColors)
+	const settingsViewType = stream(SettingsState.Simple)
+
+	const SettingsItems: SegmentControlItem<string>[] = [
+		{name: lang.get("simpleSettings_label"), value: SettingsState.Simple},
+		{name: lang.get("advancedSettings_label"), value: SettingsState.Advanced}
+	]
 
 	const form = {
 		view: () => {
 			return m(".pb", [
-				m(".small.mt", lang.get('customColorsInfo_msg')),
-				m(".wrapping-row", [
-					m("", leftColumnsAttrs.map(c => {
-						return m("", [
-							m(TextFieldN, c),
-							_getDefaultColorLine(c)
-						])
-					})),
-					m("", rightColumnsAttrs.map(c => {
-						return m("", [
-							m(TextFieldN, c),
-							_getDefaultColorLine(c)
-						])
-					})),
-				])
+				m(SegmentControl, {
+					selectedValue: settingsViewType,
+					items: SettingsItems
+				}),
+				settingsViewType() === SettingsState.Simple
+					? m(".mt", "Hello")
+					: [
+						m(".small.mt", lang.get('customColorsInfo_msg')),
+						m("", leftColumnsAttrs.map(c => {
+							return m("", [
+								m(TextFieldN, c),
+								_getDefaultColorLine(c)
+							])
+						})),
+						m("", rightColumnsAttrs.map(c => {
+							return m("", [
+								m(TextFieldN, c),
+								_getDefaultColorLine(c)
+							])
+						}))
+					],
 			])
 		}
 	}
