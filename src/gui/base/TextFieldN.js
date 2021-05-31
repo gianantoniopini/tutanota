@@ -59,13 +59,15 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 
 	view(vnode: Vnode<TextFieldAttrs>): Children {
 		const a = vnode.attrs
+		const width = a.maxWidth
 		const labelBase = !this.active && a.value() === "" && !a.disabled && !this._didAutofill && !a.injectionsLeft
 		const labelTransitionSpeed = DefaultAnimationTime / 2
 		return m(".text-field.rel.overflow-hidden", {
 			id: vnode.attrs.id,
 			oncreate: (vnode) => this._domWrapper = vnode.dom,
 			onclick: (e) => a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a),
-			class: a.class != null ? a.class : "text pt"
+			class: a.class != null ? a.class : "text pt",
+			style: width ? {maxWidth: px(width)} : {}
 		}, [
 			m("label.abs.text-ellipsis.noselect.backface_fix.z1.i.pr-s", {
 				class: this.active ? "content-accent-fg" : "",
@@ -175,6 +177,7 @@ export class TextFieldN implements MComponent<TextFieldAttrs> {
 						if (this.domInput) this.domInput.value = ""
 					},
 					style: {
+						maxWidth: a.maxWidth,
 						minWidth: px(20), // fix for edge browser. buttons are cut off in small windows otherwise
 						lineHeight: px(inputLineHeight),
 					}

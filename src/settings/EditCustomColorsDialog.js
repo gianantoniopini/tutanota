@@ -14,6 +14,7 @@ import stream from "mithril/stream/stream.js"
 import {downcast} from "../api/common/utils/Utils"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
+import {SimpleCustomColorEditor} from "./SimpleCustomColorEditor"
 
 assertMainOrNode()
 
@@ -67,21 +68,23 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 					items: SettingsItems
 				}),
 				settingsViewType() === SettingsState.Simple
-					? m(".mt", "Hello")
+					? m(SimpleCustomColorEditor, {})
 					: [
 						m(".small.mt", lang.get('customColorsInfo_msg')),
-						m("", leftColumnsAttrs.map(c => {
-							return m("", [
-								m(TextFieldN, c),
-								_getDefaultColorLine(c)
-							])
-						})),
-						m("", rightColumnsAttrs.map(c => {
-							return m("", [
-								m(TextFieldN, c),
-								_getDefaultColorLine(c)
-							])
-						}))
+						m(".wrapping-row", [
+							m("", leftColumnsAttrs.map(c => {
+								return m("", [
+									m(TextFieldN, c),
+									_getDefaultColorLine(c)
+								])
+							})),
+							m("", rightColumnsAttrs.map(c => {
+								return m("", [
+									m(TextFieldN, c),
+									_getDefaultColorLine(c)
+								])
+							}))
+						])
 					],
 			])
 		}
@@ -90,18 +93,26 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	const cancelAction = () => dialog.close()
 	const okAction = () => {
 		let newTheme = themeToEdit.logo ? {"logo": themeToEdit.logo} : {}
-		for (let i = 0; i < colorFieldsAttrs.length; i++) {
-			let colorValue = colorFieldsAttrs[i].value().trim()
-			if (colorValue) {
-				if (COLOR_FORMAT.test(colorValue)) {
-					newTheme[(colorFieldsAttrs[i]: any).label()] = colorValue
-				} else {
-					Dialog.error("correctValues_msg")
-					return
+		if (settingsViewType() === SettingsState.Simple) {
+			// save simple settings
+			newTheme = {
+			}
+			console.log("simple")
+		} else {
+			for (let i = 0; i < colorFieldsAttrs.length; i++) {
+				let colorValue = colorFieldsAttrs[i].value().trim()
+				if (colorValue) {
+					if (COLOR_FORMAT.test(colorValue)) {
+						newTheme[(colorFieldsAttrs[i]: any).label()] = colorValue
+					} else {
+						Dialog.error("correctValues_msg")
+						return
+					}
 				}
 			}
+			console.log(newTheme)
+			onThemeChanged(downcast(newTheme))
 		}
-		onThemeChanged(downcast(newTheme))
 		dialog.close()
 	}
 
