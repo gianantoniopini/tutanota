@@ -15,6 +15,7 @@ import {downcast} from "../api/common/utils/Utils"
 import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import {SimpleCustomColorEditor} from "./SimpleCustomColorEditor"
+import {deviceConfig} from "../misc/DeviceConfig"
 
 assertMainOrNode()
 
@@ -54,6 +55,10 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	const leftColumnsAttrs = colorFieldsAttrs.slice(0, nbrOfLeftColors)
 	const rightColumnsAttrs = colorFieldsAttrs.slice(nbrOfLeftColors)
 	const settingsViewType = stream(SettingsState.Simple)
+	let newTheme = themeToEdit.logo ? {"logo": themeToEdit.logo} : {}
+
+
+	let accentColor = stream(themeManager._getTheme(deviceConfig.getTheme()).content_accent)
 
 	const SettingsItems: SegmentControlItem<string>[] = [
 		{name: lang.get("simpleSettings_label"), value: SettingsState.Simple},
@@ -68,7 +73,10 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 					items: SettingsItems
 				}),
 				settingsViewType() === SettingsState.Simple
-					? m(SimpleCustomColorEditor, {})
+					? m(SimpleCustomColorEditor, {
+						accentColor: accentColor,
+						updateCustomTheme: applyCustomTheme
+					})
 					: [
 						m(".small.mt", lang.get('customColorsInfo_msg')),
 						m(".wrapping-row", [
@@ -90,14 +98,22 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 		}
 	}
 
+	const applyCustomTheme = () => {
+		console.log("applied custom theme")
+		newTheme = {
+			"list_accent_fg": accentColor(),
+			"content_accent": accentColor(),
+			"content_button_selected": accentColor(),
+			"navigation_button_selected": accentColor(),
+			"header_button_selected": accentColor()
+		}
+		onThemeChanged(downcast(newTheme))
+	}
+
 	const cancelAction = () => dialog.close()
 	const okAction = () => {
-		let newTheme = themeToEdit.logo ? {"logo": themeToEdit.logo} : {}
 		if (settingsViewType() === SettingsState.Simple) {
-			// save simple settings
-			newTheme = {
-			}
-			console.log("simple")
+			applyCustomTheme()
 		} else {
 			for (let i = 0; i < colorFieldsAttrs.length; i++) {
 				let colorValue = colorFieldsAttrs[i].value().trim()
@@ -110,9 +126,8 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 					}
 				}
 			}
-			console.log(newTheme)
-			onThemeChanged(downcast(newTheme))
 		}
+		onThemeChanged(downcast(newTheme))
 		dialog.close()
 	}
 
