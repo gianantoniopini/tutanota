@@ -20,7 +20,7 @@ export type SimpleCustomColorEditorAttrs = {
 
 export const COLOR_PICKER_WIDTH = 400
 export const COMPONENT_PREVIEW_HEIGHT = 300
-export const LOGIN_BUTTON_WIDTH = 270
+export const BUTTON_WIDTH = 270
 
 export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEditorAttrs> {
 	_colorPickerDom: ?HTMLInputElement
@@ -40,7 +40,7 @@ export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEdit
 				m(".mr-s.flex-grow",
 					m(TextFieldN, {
 						label: () => "Accent color",
-						value: vnode.attrs.accentColor,
+						value: themeManager.customTheme ? stream(themeManager.customTheme.content_accent) : vnode.attrs.accentColor,
 						injectionsRight: () => m("input.color-picker.mb-xs.mr-s", {
 							oncreate: ({dom}) => this._colorPickerDom = dom,
 							type: "color",
@@ -71,7 +71,7 @@ export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEdit
 			}, [
 				m(".pt-m", {
 						style: {
-							width: px(LOGIN_BUTTON_WIDTH)
+							width: px(BUTTON_WIDTH)
 						}
 					},
 					m(ButtonN, {
@@ -79,7 +79,33 @@ export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEdit
 						click: () => console.log("clicked"),
 						type: ButtonType.Login
 					})),
-				m(".logo.logo-height.pl.pt-m", m.trust(theme.logo))
+				m(".pt-m", [
+					m(ButtonN, {
+						style: {width: px(BUTTON_WIDTH)},
+						label: () => "Secondary",
+						click: () => console.log("clicked"),
+						type: ButtonType.Secondary
+					}),
+					m(ButtonN, {
+						style: {width: px(BUTTON_WIDTH)},
+						label: () => "Primary",
+						click: () => console.log("clicked"),
+						type: ButtonType.Primary
+					})
+				]),
+				// m(".pt-m", [
+				// 	m(NavButtonN, {
+				// 		// click: (e) => e.preventDefault(),
+				// 		label: () => "NavButton",
+				// 		icon: () => Icons.Archive,
+				// 		href: () => ''
+				// 	})
+				// ]),
+				m(".pt-m", [
+					m("", {
+
+					})
+				])
 			])
 		])
 	}
