@@ -110,7 +110,15 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 		onThemeChanged(downcast(newTheme))
 	}
 
-	const cancelAction = () => dialog.close()
+	const cancelAction = () => {
+		const managerTheme = themeManager.customTheme
+		if (managerTheme) {
+			managerTheme.content_accent
+		} else {
+			themeManager.getDefaultTheme().content_accent
+		}
+		dialog.close()
+	}
 	const okAction = () => {
 		if (settingsViewType() === SettingsState.Simple) {
 			applyCustomTheme()

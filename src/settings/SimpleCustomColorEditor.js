@@ -7,8 +7,11 @@ import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {lang} from "../misc/LanguageViewModel"
 import {px} from "../gui/size"
 import {ButtonN, ButtonType} from "../gui/base/ButtonN"
-import {theme} from "../gui/theme"
+import {themeManager} from "../gui/theme"
 import {debounce} from "../api/common/utils/Utils"
+import {NavButtonN} from "../gui/base/NavButtonN"
+import {Icons} from "../gui/base/icons/Icons"
+import {styles} from "../gui/styles"
 
 export type SimpleCustomColorEditorAttrs = {
 	accentColor: Stream<string>,
@@ -41,7 +44,7 @@ export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEdit
 						injectionsRight: () => m("input.color-picker.mb-xs.mr-s", {
 							oncreate: ({dom}) => this._colorPickerDom = dom,
 							type: "color",
-							value: vnode.attrs.accentColor(),
+							value: themeManager.customTheme ? themeManager.customTheme.content_accent : vnode.attrs.accentColor(),
 							oninput: (inputEvent) => {
 								vnode.attrs.accentColor(inputEvent.target.value)
 								this._debounceUpdateCustomTheme(vnode.attrs)

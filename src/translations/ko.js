@@ -131,7 +131,6 @@ export default {
 		"calendarRepeatStopConditionOccurrences_label": "작동 이후",
 		"calendarRepeatStopCondition_label": "종료",
 		"groupCapabilityInvite_label": "작성 및 공유 관리",
-		"groupCapabilityWrite_label": "읽기 전용",
 		"groupCapabilityWrite_label": "읽기/쓰기",
 		"calendarView_action": "캘린더 보기로 전환",
 		"calendar_label": "달력",

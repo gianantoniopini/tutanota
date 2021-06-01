@@ -305,13 +305,15 @@ class ThemeManager {
 		// set no logo until we sanitize it
 		this.customTheme = Object.assign({}, this.getDefaultTheme(), updatedTheme, {logo: ""})
 		const nonNullTheme = this.customTheme
-		if (logo) {
-			import("dompurify").then((dompurify) => {
+		import("dompurify").then((dompurify) => {
+			if (logo) {
 				nonNullTheme.logo = dompurify.default.sanitize(logo)
-				this.setThemeId("custom", permanent) // let it copy attributes in .map() listener
-				m.redraw()
-			})
-		}
+			} else {
+				nonNullTheme.logo = dompurify.default.sanitize(this.getDefaultTheme().logo)
+			}
+			this.setThemeId("custom", permanent) // let it copy attributes in .map() listener
+			m.redraw()
+		})
 		this.setThemeId('custom', permanent)
 	}
 
