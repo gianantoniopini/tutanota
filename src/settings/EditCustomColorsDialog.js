@@ -28,11 +28,11 @@ export const SettingsState = Object.freeze({
 
 export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	const colorFieldsAttrs = Object.keys(themeManager.getDefaultTheme())
-	                               .filter(name => name !== "logo")
+	                               .filter(name => name !== "logo" && name !== "themeId")
 	                               .sort((a, b) => a.localeCompare(b))
 	                               .map(colorName => {
 			                               // value is closed over by injectionsRight,
-			                               // so the color swatch will always be up to date with the contents of the text field
+			                               // so the color switch will always be up to date with the contents of the text field
 			                               const value = stream(themeToEdit[colorName] || "")
 			                               return {
 				                               label: () => colorName,
@@ -75,7 +75,7 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 				settingsViewType() === SettingsState.Simple
 					? m(SimpleCustomColorEditor, {
 						accentColor: accentColor,
-						updateCustomTheme: applyCustomTheme
+						updateCustomTheme: applyCustomTheme,
 					})
 					: [
 						m(".small.mt", lang.get('customColorsInfo_msg')),
@@ -99,7 +99,6 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	}
 
 	const applyCustomTheme = () => {
-		console.log("applied custom theme")
 		newTheme = {
 			"list_accent_fg": accentColor(),
 			"content_accent": accentColor(),
