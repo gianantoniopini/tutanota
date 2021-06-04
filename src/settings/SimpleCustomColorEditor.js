@@ -12,9 +12,11 @@ import {debounce} from "../api/common/utils/Utils"
 import {MailRow} from "../mail/view/MailRow"
 import {createMail} from "../api/entities/tutanota/Mail"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
+import {deviceConfig} from "../misc/DeviceConfig"
 
 export type SimpleCustomColorEditorAttrs = {
 	accentColor: Stream<string>,
+	selectedTheme: Stream<string>,
 	updateCustomTheme: () => void
 }
 
@@ -24,13 +26,11 @@ export const BUTTON_WIDTH = 270
 
 export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEditorAttrs> {
 	_colorPickerDom: ?HTMLInputElement;
-	_selectedTheme: Stream<string>;
 	_debounceUpdateCustomTheme: (SimpleCustomColorEditorAttrs) => void;
 	_mailRow: MailRow
 	_mailRow2: MailRow
 
 	constructor(vnode: Vnode<SimpleCustomColorEditorAttrs>) {
-		this._selectedTheme = stream()
 		this._debounceUpdateCustomTheme = debounce(200, (attrs) => {
 			attrs.updateCustomTheme()
 		})
@@ -64,7 +64,7 @@ export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEdit
 							{name: lang.get("light_label"), value: 'Light'},
 							{name: lang.get("dark_label"), value: 'Dark'}
 						],
-						selectedValue: this._selectedTheme
+						selectedValue: vnode.attrs.selectedTheme
 					}))
 			]),
 			m(".editor-border.mt-l.flex.col", { // component preview for color

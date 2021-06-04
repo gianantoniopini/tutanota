@@ -16,6 +16,7 @@ import type {SegmentControlItem} from "../gui/base/SegmentControl"
 import {SegmentControl} from "../gui/base/SegmentControl"
 import {SimpleCustomColorEditor} from "./SimpleCustomColorEditor"
 import {deviceConfig} from "../misc/DeviceConfig"
+import {getLogoSvg} from "../gui/base/icons/Logo"
 
 assertMainOrNode()
 
@@ -28,7 +29,7 @@ export const SettingsState = Object.freeze({
 
 export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	const colorFieldsAttrs = Object.keys(themeManager.getDefaultTheme())
-	                               .filter(name => name !== "logo" && name !== "themeId")
+	                               .filter(name => name !== "logo" && name !== "themeId" && name !== "appearance")
 	                               .sort((a, b) => a.localeCompare(b))
 	                               .map(colorName => {
 			                               // value is closed over by injectionsRight,
@@ -59,6 +60,7 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 
 
 	let accentColor = stream(themeManager._getTheme(deviceConfig.getTheme()).content_accent)
+	let selectedTheme = stream(themeManager._getTheme(deviceConfig.getTheme()).appearance)
 
 	const SettingsItems: SegmentControlItem<string>[] = [
 		{name: lang.get("simpleSettings_label"), value: SettingsState.Simple},
@@ -75,6 +77,7 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 				settingsViewType() === SettingsState.Simple
 					? m(SimpleCustomColorEditor, {
 						accentColor: accentColor,
+						selectedTheme: selectedTheme,
 						updateCustomTheme: applyCustomTheme,
 					})
 					: [
@@ -99,13 +102,7 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 	}
 
 	const applyCustomTheme = () => {
-		newTheme = {
-			"list_accent_fg": accentColor(),
-			"content_accent": accentColor(),
-			"content_button_selected": accentColor(),
-			"navigation_button_selected": accentColor(),
-			"header_button_selected": accentColor()
-		}
+		newTheme = applyColors(accentColor(), selectedTheme())
 		onThemeChanged(downcast(newTheme))
 	}
 
@@ -175,5 +172,117 @@ function _getDefaultColorLine(field: TextFieldAttrs): Child {
 		])
 	} else {
 		return m(".small", lang.get("invalidInputFormat_msg"))
+	}
+}
+
+function applyColors(accentColor: string, theme: string): Object {
+	const light_lighter_1 = '#DDDDDD'
+	const light_lighter_0 = '#aeaeae'
+	const light_grey = '#999999'
+
+	const dark_lighter_2 = '#4e4e4e'
+	const dark_lighter_1 = "#363636"
+	const dark_lighter_0 = '#232323'
+	const dark = '#222222'
+	const dark_darker_0 = '#111111'
+	const logo_text_bright_grey = '#c5c7c7'
+
+	const light_white = '#ffffff'
+
+	const grey_lighter_4 = '#f6f6f6'
+	const grey_lighter_3 = '#eaeaea'
+	const grey_lighter_2 = "#e1e1e1"
+	const grey_lighter_1 = '#d5d5d5'
+	const grey_lighter_0 = '#b8b8b8'
+	const grey = '#868686'
+	const grey_darker_0 = '#707070'
+	const grey_darker_1 = '#303030'
+	const logo_text_dark_grey = '#4a4a4a'
+
+	if (theme === 'Light') {
+		return {
+			list_accent_fg: accentColor,
+			content_accent: accentColor,
+			content_button_selected: accentColor,
+			navigation_button_selected: accentColor,
+			header_button_selected: accentColor,
+			logo: getLogoSvg(accentColor, logo_text_dark_grey),
+			appearance: 'Light',
+
+			button_bubble_bg: grey_lighter_3,
+			button_bubble_fg: grey_darker_1,
+
+			content_fg: grey_darker_1,
+			content_button: grey_darker_0,
+			content_button_icon: light_white,
+			content_button_icon_selected: light_white,
+			content_bg: light_white,
+			content_border: grey_lighter_1,
+			content_message_bg: grey_lighter_0,
+
+			header_bg: light_white,
+			header_box_shadow_bg: grey_lighter_1,
+			header_button: grey_darker_0,
+
+			list_bg: light_white,
+			list_alternate_bg: grey_lighter_4,
+			list_message_bg: grey_lighter_0,
+			list_border: grey_lighter_2,
+
+			modal_bg: grey_darker_1,
+			elevated_bg: light_white,
+
+			navigation_bg: grey_lighter_4,
+			navigation_border: grey_lighter_2,
+			navigation_button: grey_darker_0,
+			navigation_button_icon: light_white,
+			navigation_button_icon_selected: light_white,
+			navigation_menu_bg: grey_lighter_3,
+			navigation_menu_icon: grey
+		}
+	} else {
+		return {
+			list_accent_fg: accentColor,
+			content_accent: accentColor,
+			content_button_selected: accentColor,
+			navigation_button_selected: accentColor,
+			header_button_selected: accentColor,
+			logo: getLogoSvg(accentColor, logo_text_bright_grey),
+			appearance: 'Dark',
+
+			button_bubble_bg: dark_lighter_2,
+			button_bubble_fg: light_lighter_1,
+
+			content_fg: light_lighter_1,
+			content_button: light_lighter_0,
+			content_button_icon_bg: dark_lighter_2,
+			content_button_icon: light_lighter_1,
+			content_button_icon_selected: dark_lighter_0,
+			content_bg: dark_darker_0,
+			content_border: dark_lighter_1,
+			content_message_bg: dark_lighter_2,
+
+
+			header_bg: dark,
+			header_box_shadow_bg: dark_darker_0,
+			header_button: light_lighter_0,
+
+			list_bg: dark_darker_0,
+			list_alternate_bg: dark_lighter_0,
+			list_message_bg: dark_lighter_2,
+			list_border: dark_lighter_1,
+
+			modal_bg: dark_darker_0,
+			elevated_bg: dark_lighter_0,
+
+			navigation_bg: dark_lighter_0,
+			navigation_border: dark_lighter_1,
+			navigation_button: light_lighter_0,
+			navigation_button_icon_bg: dark_lighter_2,
+			navigation_button_icon: light_lighter_1,
+			navigation_button_icon_selected: light_lighter_0,
+			navigation_menu_bg: dark_darker_0,
+			navigation_menu_icon: light_grey,
+		}
 	}
 }

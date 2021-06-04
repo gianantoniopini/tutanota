@@ -12,6 +12,7 @@ export type ThemeId = 'light' | 'dark' | 'blue' | 'custom'
 
 export type Theme = {
 	themeId: ThemeId,
+	appearance: string,
 	logo: string,
 
 	button_bubble_bg: string,
@@ -106,6 +107,7 @@ export const themes: Themes = {
 
 	light: Object.freeze({
 		themeId: 'light',
+		appearance: 'Light',
 		logo: getLogoSvg(red, logo_text_dark_grey),
 
 		button_bubble_bg: grey_lighter_3,
@@ -148,6 +150,7 @@ export const themes: Themes = {
 	dark: Object.freeze({
 
 		themeId: 'dark',
+		appearance: 'Dark',
 		logo: getLogoSvg(green, logo_text_bright_grey),
 
 		button_bubble_bg: dark_lighter_2,
@@ -193,6 +196,7 @@ export const themes: Themes = {
 	blue: Object.freeze({
 
 		themeId: 'blue',
+		appearance: 'Light',
 		logo: getLogoSvg(blue, logo_text_dark_grey),
 
 		button_bubble_bg: grey_lighter_3,
