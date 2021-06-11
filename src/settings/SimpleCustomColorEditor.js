@@ -2,6 +2,7 @@
 
 import m from "mithril"
 import {TextFieldN} from "../gui/base/TextFieldN"
+import type {TextFieldAttrs} from "../gui/base/TextFieldN"
 import stream from "mithril/stream/stream.js"
 import {DropDownSelectorN} from "../gui/base/DropDownSelectorN"
 import {lang} from "../misc/LanguageViewModel"
@@ -12,7 +13,6 @@ import {debounce} from "../api/common/utils/Utils"
 import {MailRow} from "../mail/view/MailRow"
 import {createMail} from "../api/entities/tutanota/Mail"
 import {createMailAddress} from "../api/entities/tutanota/MailAddress"
-import {deviceConfig} from "../misc/DeviceConfig"
 
 export type SimpleCustomColorEditorAttrs = {
 	accentColor: Stream<string>,
@@ -27,6 +27,7 @@ export const BUTTON_WIDTH = 270
 export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEditorAttrs> {
 	_colorPickerDom: ?HTMLInputElement;
 	_debounceUpdateCustomTheme: (SimpleCustomColorEditorAttrs) => void;
+	_customThemeAccent: string
 	_mailRow: MailRow
 	_mailRow2: MailRow
 
@@ -34,29 +35,34 @@ export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEdit
 		this._debounceUpdateCustomTheme = debounce(200, (attrs) => {
 			attrs.updateCustomTheme()
 		})
+		this._customThemeAccent = themeManager._theme.content_accent
 		this._mailRow = new MailRow(false)
 		this._mailRow2 = new MailRow(false)
 	}
 
 	view(vnode: Vnode<SimpleCustomColorEditorAttrs>): Children {
+
+		const simpleColorPickerAttrs: TextFieldAttrs = {
+			label: () => "Accent color",
+			value: themeManager.customTheme ? stream(themeManager.customTheme.content_accent) : vnode.attrs.accentColor,
+			injectionsRight: () => m("input.color-picker.mb-xs.mr-s", {
+				oncreate: ({dom}) => this._colorPickerDom = dom,
+				type: "color",
+				value: themeManager.customTheme ? themeManager.customTheme.content_accent : vnode.attrs.accentColor(),
+				oninput: (inputEvent) => { // TODO rework color change handling
+					vnode.attrs.accentColor(inputEvent.target.value)
+					this._debounceUpdateCustomTheme(vnode.attrs)
+					// this._customThemeAccent = inputEvent
+				}
+			}),
+			maxWidth: COLOR_PICKER_WIDTH,
+			disabled: true
+		}
+
 		return m("", [
 			m(".flex", [
 				m(".mr-s.flex-grow",
-					m(TextFieldN, {
-						label: () => "Accent color",
-						value: themeManager.customTheme ? stream(themeManager.customTheme.content_accent) : vnode.attrs.accentColor,
-						injectionsRight: () => m("input.color-picker.mb-xs.mr-s", {
-							oncreate: ({dom}) => this._colorPickerDom = dom,
-							type: "color",
-							value: themeManager.customTheme ? themeManager.customTheme.content_accent : vnode.attrs.accentColor(),
-							oninput: (inputEvent) => {
-								vnode.attrs.accentColor(inputEvent.target.value)
-								this._debounceUpdateCustomTheme(vnode.attrs)
-							}
-						}),
-						maxWidth: COLOR_PICKER_WIDTH,
-						disabled: true
-					})),
+					m(TextFieldN, simpleColorPickerAttrs)),
 				m(".ml-s.flex-grow",
 					m(DropDownSelectorN, {
 						label: () => "Choose theme",
@@ -64,7 +70,13 @@ export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEdit
 							{name: lang.get("light_label"), value: 'Light'},
 							{name: lang.get("dark_label"), value: 'Dark'}
 						],
-						selectedValue: vnode.attrs.selectedTheme
+						selectedValue: vnode.attrs.selectedTheme,
+						// following commented code is currently creating extreme problems
+						// TODO find better solution
+						// selectionChangedHandler: (value) => {
+						// 	vnode.attrs.selectedTheme = value
+						// 	this._debounceUpdateCustomTheme(vnode.attrs)
+						// }
 					}))
 			]),
 			m(".editor-border.mt-l.flex.col", { // component preview for color
@@ -135,13 +147,13 @@ export class SimpleCustomColorEditor implements MComponent<SimpleCustomColorEdit
 				width: px(size.second_col_max_width)
 			}
 		}, [
-			m("li.list-row.pl.pr-l.odd-row.pt-m.pb-m", {
+			m(".list-row.pl.pr-l.odd-row.pt-m.pb-m", {
 				oncreate: vnode => {
 					this._mailRow.domElement = vnode.dom
 					requestAnimationFrame(() => this._mailRow.update(mail, false))
 				}
 			}, this._mailRow.render()),
-			m("li.list-row.pl.pr-l.pt-m.pb-m", {
+			m(".list-row.pl.pr-l.pt-m.pb-m", {
 				oncreate: vnode => {
 					this._mailRow2.domElement = vnode.dom
 					requestAnimationFrame(() => this._mailRow2.update(mail2, true))

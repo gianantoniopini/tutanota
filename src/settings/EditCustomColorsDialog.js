@@ -108,12 +108,14 @@ export function show(themeToEdit: Theme, onThemeChanged: (Theme) => mixed) {
 
 	const cancelAction = () => {
 		onThemeChanged(downcast(themeToEdit))
+		themeManager.setThemeId("light")
 		dialog.close()
 	}
 
 	const okAction = () => {
 		if (settingsViewType() === SettingsState.Simple) {
-			applyCustomTheme()
+			// applyCustomTheme()
+			newTheme = applyColors(accentColor(), selectedTheme())
 		} else {
 			for (let i = 0; i < colorFieldsAttrs.length; i++) {
 				let colorValue = colorFieldsAttrs[i].value().trim()
