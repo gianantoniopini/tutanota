@@ -278,13 +278,14 @@ public final class Native {
 					break;
 				}
 				case "getThemes": {
-					List<Map<String,String>> themesList = this.themeManager.getThemes();
+					List<Map<String, String>> themesList = this.themeManager.getThemes();
 					promise.resolve(new JSONArray(themesList));
 					break;
 				}
 				case "setThemes": {
 					JSONArray jsonThemes = args.getJSONArray(0);
 					this.themeManager.setThemes(jsonThemes);
+					activity.applyTheme();    // reapply theme in case the current selected theme definition has changed
 					promise.resolve(null);
 					break;
 				}
