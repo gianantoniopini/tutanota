@@ -51,7 +51,7 @@ typedef void(^VoidCallback)(void);
 @property (readonly, nonnull) TUTUserPreferenceFacade *userPreferences;
 @property (readonly, nonnull) TUTAlarmManager *alarmManager;
 @property (readonly, nonnull) ThemeManager *themeManager;
-@property BOOL darkTheme;
+@property BOOL isDarkTheme;
 @end
 
 @implementation TUTViewController
@@ -72,7 +72,7 @@ alarmManager:(TUTAlarmManager *)alarmManager
         _keychainManager = [TUTKeychainManager new];
         _userPreferences = preferenceFacade;
         _alarmManager = alarmManager;
-        _darkTheme = NO;
+        _isDarkTheme = NO;
 	}
 	return self;
 }
@@ -122,20 +122,20 @@ alarmManager:(TUTAlarmManager *)alarmManager
   let theme = [_themeManager currentThemeWithFallback];
   [self applyTheme:theme];
   
-    if ([self.appDelegate.alarmManager hasNotificationTTLExpired]) {
-        [self.appDelegate.alarmManager resetStoredState];
-    } else {
-        [self.appDelegate.alarmManager fetchMissedNotifications:^(NSError *error) {
-            if (error) {
-                TUTLog(@"Failed to fetch/process missed notifications: %@", error);
-            } else {
-                TUTLog(@"Successfully processed missed notifications");
-            }
-        }];
-        [self.appDelegate.alarmManager rescheduleAlarms];
-    }
-    
-    [self loadMainPageWithParams:[NSDictionary new]];
+  if ([self.appDelegate.alarmManager hasNotificationTTLExpired]) {
+      [self.appDelegate.alarmManager resetStoredState];
+  } else {
+      [self.appDelegate.alarmManager fetchMissedNotifications:^(NSError *error) {
+          if (error) {
+              TUTLog(@"Failed to fetch/process missed notifications: %@", error);
+          } else {
+              TUTLog(@"Successfully processed missed notifications");
+          }
+      }];
+      [self.appDelegate.alarmManager rescheduleAlarms];
+  }
+  
+  [self loadMainPageWithParams:[NSDictionary new]];
 }
 
 - (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
@@ -295,6 +295,8 @@ alarmManager:(TUTAlarmManager *)alarmManager
   } else if ([@"setThemes" isEqualToString:type]) {
     NSArray<NSDictionary<NSString *, NSString*> *> *themes = arguments[0];
     _themeManager.themes = themes;
+    // reapply the current theme in case the definition has changed
+    [self applyTheme:_themeManager.currentTheme];
     sendResponseBlock(NSNull.null, nil);
 	} else {
 		let message = [NSString stringWithFormat:@"Unknown command: %@", type];
@@ -513,7 +515,7 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle {
-    if (_darkTheme) {
+    if (self.isDarkTheme) {
         return UIStatusBarStyleLightContent;
     } else {
         // Since iOS 13 UIStatusBarStyleDefault respects dark mode and we just want dark text
@@ -526,9 +528,12 @@ decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
 }
 
 - (void)applyTheme:(NSDictionary<NSString *,NSString *> *_Nonnull)theme {
+  // We use content_bg instead of header_bg to detect the lightness,
+  // because unlike in Android, we can't manually set the status bar colour (at least not using official APIs)
+  // and the status bar will be the same colour as the webview background (because it is transparent)
   NSString *contentBgString = theme[@"content_bg"];
   let contentBg = [[UIColor alloc] initWithHex:contentBgString];
-  self.darkTheme = ![UIColor isColorLight:contentBgString];
+  self.isDarkTheme = ![UIColor isColorLight:contentBgString];
   self.view.backgroundColor = contentBg;
   [self setNeedsStatusBarAppearanceUpdate];
 }
