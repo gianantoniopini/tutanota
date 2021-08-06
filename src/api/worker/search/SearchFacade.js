@@ -35,7 +35,7 @@ import {
 import {FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP} from "../../common/TutanotaConstants"
 import {timestampToGeneratedId, uint8ArrayToBase64} from "../../common/utils/Encoding"
 import {INITIAL_MAIL_INDEX_INTERVAL_DAYS, MailIndexer} from "./MailIndexer"
-import {LoginFacade} from "../facades/LoginFacade"
+import {LoginFacade, LoginFacadeImpl} from "../facades/LoginFacade"
 import {SuggestionFacade} from "./SuggestionFacade"
 import {load} from "../EntityWorker"
 // $FlowIgnore[untyped-import]
@@ -53,13 +53,13 @@ import {ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsInd
 type RowsToReadForIndexKey = {indexKey: string, rows: Array<SearchIndexMetadataEntry>}
 
 export class SearchFacade {
-	_loginFacade: LoginFacade;
+	_loginFacade: LoginFacadeImpl;
 	_db: Db;
 	_mailIndexer: MailIndexer;
 	_suggestionFacades: SuggestionFacade<any>[];
 	_promiseMapCompat: PromiseMapFn;
 
-	constructor(loginFacade: LoginFacade, db: Db, mailIndexer: MailIndexer, suggestionFacades: SuggestionFacade<any>[], browserData: BrowserData) {
+	constructor(loginFacade: LoginFacadeImpl, db: Db, mailIndexer: MailIndexer, suggestionFacades: SuggestionFacade<any>[], browserData: BrowserData) {
 		this._loginFacade = loginFacade
 		this._db = db
 		this._mailIndexer = mailIndexer
@@ -581,8 +581,9 @@ export class SearchFacade {
 			})
 	}
 
-	getMoreSearchResults(searchResult: SearchResult, moreResultCount: number): Promise<void> {
-		return this._startOrContinueSearch(searchResult, moreResultCount)
+	async getMoreSearchResults(searchResult: SearchResult, moreResultCount: number): Promise<SearchResult> {
+		await this._startOrContinueSearch(searchResult, moreResultCount)
+		return searchResult
 	}
 
 

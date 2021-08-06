@@ -179,7 +179,7 @@ export class ExternalLoginView {
 					                                 deviceConfig.set(newCredentials)
 				                                 }
 				                                 if (storedCredentials) { // delete persistent session (saved in deviceConfig) if a new session is created
-					                                 return worker.deleteSession(storedCredentials.accessToken)
+					                                 return worker.loginFacade.deleteSession(storedCredentials.accessToken)
 					                                              .then(() => {
 						                                              if (!persistentSession) {
 							                                              deviceConfig.delete(this._userId)
@@ -240,59 +240,13 @@ export class ExternalLoginView {
 	}
 
 	_loadAndSetPhoneNumbers(): Promise<void> {
-		return worker.loadExternalPasswordChannels(this._userId, this._salt)
-		             .then(passwordChannels => {
-			             this._phoneNumbers = passwordChannels.phoneNumberChannels
-			             this._sendSmsAllowed = true
-		             })
-		             .catch(AccessExpiredError, e => {
-			             this._errorMessageId = 'expiredLink_msg'
-		             })
-		             .catch(NotAuthenticatedError, e => {
-			             this._errorMessageId = 'invalidLink_msg'
-		             })
-		             .catch(BadRequestError, e => {
-			             this._errorMessageId = 'invalidLink_msg'
-		             })
-		             .catch(ConnectionError, e => {
-			             if (client.isIE()) {
-				             // IE says it's error code 0 fore some reason
-				             this._helpText = 'loginFailed_msg'
-				             m.redraw()
-			             } else {
-				             this._helpText = 'emptyString_msg'
-				             throw e;
-			             }
-		             }).finally(() => m.redraw())
+		// This is removed on another branch
+		return Promise.resolve()
 	}
 
 	_sendSms(phoneNumberId: Id): Promise<void> {
-		if (!this._sendSmsAllowed) {
-			return Dialog.error(this._helpText)
-		}
-		this._helpText = "sendingSms_msg"
-		this._sendSmsAllowed = false
-		m.redraw()
-		return worker.sendExternalPasswordSms(this._userId, this._salt, phoneNumberId, lang.code, this._symKeyForPasswordTransmission)
-		             .then(result => {
-			             this._symKeyForPasswordTransmission = result.symKeyForPasswordTransmission
-			             this._helpText = "smsSent_msg"
-			             setTimeout(() => {
-				             this._sendSmsAllowed = true
-				             this._helpText = "smsResent_msg"
-				             m.redraw()
-			             }, 60000)
-		             })
-		             .catch(TooManyRequestsError, e => {
-			             this._helpText = "smsSentOften_msg"
-		             })
-		             .catch(AccessExpiredError, e => {
-			             this._errorMessageId = "expiredLink_msg"
-		             })
-		             .catch(InternalServerError, e => {
-			             this._helpText = "smsError_msg"
-		             })
-		             .finally(() => m.redraw())
+		// This is removed on another branch
+		return Promise.resolve()
 	}
 
 }

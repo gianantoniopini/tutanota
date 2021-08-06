@@ -191,7 +191,7 @@ export class SearchListView {
 		}
 		let loadingResultsPromise = Promise.resolve(currentResult)
 		if (getMoreFromSearch && hasMoreResults(currentResult)) {
-			loadingResultsPromise = worker.getMoreSearchResults(currentResult, count)
+			loadingResultsPromise = worker.searchFacade.getMoreSearchResults(currentResult, count)
 		}
 		return loadingResultsPromise
 			.then((moreResults) => {

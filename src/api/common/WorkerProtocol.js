@@ -8,6 +8,7 @@
  */
 import {isWorker} from "./Env"
 import {downcast, objToError} from "./utils/Utils"
+import type {WorkerInterface} from "../worker/WorkerImpl"
 
 //assertMainOrNode()
 
@@ -47,7 +48,9 @@ export class RequestError {
 	}
 }
 
-
+/**
+ * Queue for the remote invocations (e.g. worker or native calls).
+ */
 export class Queue {
 	/**
 	 * Map from request id that have been sent to the callback that will be

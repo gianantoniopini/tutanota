@@ -264,7 +264,7 @@ export class SettingsView implements CurrentView {
 						label: "leaveGroup_action",
 						click: () =>
 							getConfirmation("confirmLeaveTemplateGroup_msg")
-								.confirmed(() => worker.removeUserFromGroup(getEtId(logins.getUserController().user), folder.data.groupInfo.group)),
+								.confirmed(() => worker.groupManagementFacade.removeUserFromGroup(getEtId(logins.getUserController().user), folder.data.groupInfo.group)),
 						icon: () => Icons.Trash
 					},
 				{

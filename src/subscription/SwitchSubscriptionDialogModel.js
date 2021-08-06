@@ -1,6 +1,5 @@
 //@flow
 
-import type {WorkerClient} from "../api/main/WorkerClient"
 import type {SubscriptionPlanPrices, SubscriptionTypeEnum} from "./SubscriptionUtils"
 import {
 	getIncludedAliases,
@@ -27,6 +26,7 @@ import type {AccountingInfo} from "../api/entities/sys/AccountingInfo"
 import type {Customer} from "../api/entities/sys/Customer"
 import type {CustomerInfo} from "../api/entities/sys/CustomerInfo"
 import type {Booking} from "../api/entities/sys/Booking"
+import type {BookingFacade} from "../api/worker/facades/BookingFacade"
 
 
 type PlanPriceCalc = {
@@ -72,15 +72,15 @@ type UpgradeDowngradePrices = {|
 
 
 export class SwitchSubscriptionDialogModel {
-	_worker: WorkerClient
+	+_bookingFacade: BookingFacade;
 	_customer: Customer
 	_customerInfo: CustomerInfo
 	_accountingInfo: AccountingInfo
 	_lastBooking: Booking
 	currentSubscriptionInfo: CurrentSubscriptionInfo
 
-	constructor(worker: WorkerClient, customer: Customer, customerInfo: CustomerInfo, accountingInfo: AccountingInfo, lastBooking: Booking) {
-		this._worker = worker
+	constructor(bookingFacade: BookingFacade, customer: Customer, customerInfo: CustomerInfo, accountingInfo: AccountingInfo, lastBooking: Booking) {
+		this._bookingFacade = bookingFacade
 		this._customer = customer
 		this._customerInfo = customerInfo
 		this._accountingInfo = accountingInfo
@@ -156,7 +156,7 @@ export class SwitchSubscriptionDialogModel {
 				count: 1
 			},
 		]
-		return Promise.mapSeries(getPriceFeatureList, getPriceFeature => this._worker.getPrice(getPriceFeature.type, getPriceFeature.count, false))
+		return Promise.mapSeries(getPriceFeatureList, getPriceFeature => this._bookingFacade.getPrice(getPriceFeature.type, getPriceFeature.count, false))
 		              .then(([addUserPrice, upgrade20AliasesPrice, downgrade5AliasesPrice, upgrade10GbStoragePrice, downgrade1GbStoragePrice, upgradeSharingPrice, downgradeSharingPrice, upgradeBusinessPrice, downgradeBusinessPrice, upgradeWhitelabelPrice, downgradeWhitelabelPrice, contactFormPrice]) => {
 			              return {
 				              addUserPrice: addUserPrice,

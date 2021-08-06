@@ -59,7 +59,7 @@ export function showCalendarImportDialog(calendarGroupRoot: CalendarGroupRoot) {
 								              alarmInfo.alarmIdentifier = generateEventElementId(Date.now())
 							              }
 							              assignEventId(event, zone, calendarGroupRoot)
-							              return worker.createCalendarEvent(event, alarms, null)
+							              return worker.calendarFacade.createCalendarEvent(event, alarms, null)
 							                           .then(() => progressMonitor.workDone(1))
 							                           .delay(100)
 						              })

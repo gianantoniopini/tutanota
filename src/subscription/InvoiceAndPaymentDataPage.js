@@ -164,7 +164,7 @@ export class InvoiceAndPaymentDataPageAttrs implements WizardPageAttrs<UpgradeSu
 
 export function updatePaymentData(paymentInterval: number, invoiceData: InvoiceData, paymentData: ?PaymentData, confirmedCountry: ?Country, isSignup: boolean, price: string, accountingInfo: AccountingInfo): Promise<boolean> {
 
-	return worker.updatePaymentData(paymentInterval, invoiceData, paymentData, confirmedCountry)
+	return worker.customerFacade.updatePaymentData(paymentInterval, invoiceData, paymentData, confirmedCountry)
 	             .then(paymentResult => {
 		             const statusCode = paymentResult.result
 		             if (statusCode === PaymentDataResultType.OK) {

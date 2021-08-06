@@ -58,7 +58,7 @@ export class SearchModel {
 			this.result(result)
 			return Promise.resolve(result)
 		} else {
-			return this._worker.search(query, restriction, minSuggestionCount, maxResults).then(result => {
+			return this._worker.searchFacade.search(query, restriction, minSuggestionCount, maxResults).then(result => {
 				this.result(result)
 				return result
 			}).catch(DbError, (e) => {

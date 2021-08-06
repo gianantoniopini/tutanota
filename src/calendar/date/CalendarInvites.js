@@ -44,7 +44,7 @@ export function showEventDetails(event: CalendarEvent, mail: ?Mail): Promise<voi
 }
 
 export function getEventFromFile(file: TutanotaFile): Promise<?CalendarEvent> {
-	return worker.downloadFileContent(file).then((fileData) => {
+	return worker.fileFacade.downloadFileContent(file).then((fileData) => {
 		const parsedEvent = getParsedEvent(fileData)
 		return parsedEvent && parsedEvent.event
 	})
@@ -57,7 +57,7 @@ export function getEventFromFile(file: TutanotaFile): Promise<?CalendarEvent> {
 export function getLatestEvent(event: CalendarEvent): Promise<CalendarEvent> {
 	const uid = event.uid
 	if (uid) {
-		return worker.getEventByUid(uid).then((existingEvent) => {
+		return worker.calendarFacade.getEventByUid(uid).then((existingEvent) => {
 			if (existingEvent) {
 				// If the file we are opening is newer than the one which we have on the server, update server version.
 				// Should not happen normally but can happen when e.g. reply and update were sent one after another before we accepted
@@ -95,7 +95,7 @@ export function replyToEventInvitation(
 	]).then(([calendar, mailboxDetails]) => {
 
 		return import("../../mail/editor/SendMailModel").then(({SendMailModel}) => {
-			const sendMailModel = new SendMailModel(worker, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
+			const sendMailModel = new SendMailModel(worker.mailFacade, logins, locator.mailModel, locator.contactModel, locator.eventController, locator.entityClient, mailboxDetails)
 			return calendarUpdateDistributor
 				.sendResponse(eventClone, sendMailModel, foundAttendee.address.address, previousMail, decision)
 				.catch(UserError, (e) => Dialog.error(() => e.message))

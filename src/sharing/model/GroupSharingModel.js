@@ -89,7 +89,7 @@ export class GroupSharingModel {
 
 	removeGroupMember(member: GroupMember): Promise<void> {
 		return this.canRemoveGroupMember(member)
-			? worker.removeUserFromGroup(member.user, getEtId(this.group))
+			? worker.groupManagementFacade.removeUserFromGroup(member.user, getEtId(this.group))
 			: Promise.reject(new ProgrammingError("User does not have permission to remove this member from the group"))
 	}
 
@@ -106,7 +106,7 @@ export class GroupSharingModel {
 
 	cancelInvitation(invitation: SentGroupInvitation): Promise<void> {
 		return this.canCancelInvitation(invitation) && invitation.receivedInvitation
-			? worker.rejectGroupInvitation(invitation.receivedInvitation)
+			? worker.shareFacade.rejectGroupInvitation(invitation.receivedInvitation)
 			: Promise.reject(new Error("User does not have permission to cancel this invitation")) // TODO error type
 	}
 
@@ -114,7 +114,7 @@ export class GroupSharingModel {
 	sendGroupInvitation(sharedGroupInfo: GroupInfo, recipients: Array<RecipientInfo>, capability: ShareCapabilityEnum): Promise<Array<MailAddress>> {
 		const externalRecipients = []
 		return Promise.each(recipients, (recipient) => {
-			return resolveRecipientInfo(this.worker, recipient)
+			return resolveRecipientInfo(this.worker.mailFacade, recipient)
 				.then(r => {
 					if (r.type !== RecipientInfoType.INTERNAL) {
 						externalRecipients.push(r.mailAddress)
@@ -125,7 +125,7 @@ export class GroupSharingModel {
 				throw new UserError(() => lang.get("featureTutanotaOnly_msg") + " " + lang.get("invalidRecipients_msg") + "\n"
 					+ externalRecipients.join("\n"))
 			}
-			return this.worker.sendGroupInvitation(sharedGroupInfo, getSharedGroupName(sharedGroupInfo, false), recipients, capability)
+			return this.worker.shareFacade.sendGroupInvitation(sharedGroupInfo, getSharedGroupName(sharedGroupInfo, false), recipients, capability)
 			           .then((groupInvitationReturn) => {
 				           if (groupInvitationReturn.existingMailAddresses.length > 0
 					           || groupInvitationReturn.invalidMailAddresses.length > 0) {

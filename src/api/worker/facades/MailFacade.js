@@ -3,7 +3,7 @@ import {decryptKey, encryptBytes, encryptKey, encryptString, resolveSessionKey} 
 import {aes128RandomKey} from "../crypto/Aes"
 import {load, serviceRequest, serviceRequestVoid} from "../EntityWorker"
 import {TutanotaService} from "../../entities/tutanota/Services"
-import type {LoginFacade} from "./LoginFacade"
+import {LoginFacadeImpl} from "./LoginFacade"
 import type {ConversationTypeEnum, MailMethodEnum, ReportedMailFieldTypeEnum} from "../../common/TutanotaConstants"
 import {
 	GroupType,
@@ -55,7 +55,6 @@ import {assertWorkerOrNode, isApp} from "../../common/Env"
 import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaProperties"
 import {GroupInfoTypeRef} from "../../entities/sys/GroupInfo"
 import {contains} from "../../common/utils/ArrayUtils"
-import type {EncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {createEncryptedMailAddress} from "../../entities/tutanota/EncryptedMailAddress"
 import {fileApp} from "../../../native/common/FileApp"
 import {encryptBucketKeyForInternalRecipient} from "./ReceipientKeyDataUtils"
@@ -71,20 +70,25 @@ import {htmlToText} from "../search/IndexUtils"
 import {MailBodyTooLargeError} from "../../common/error/MailBodyTooLargeError"
 import {byteLength} from "../../common/utils/StringUtils"
 import {UNCOMPRESSED_MAX_SIZE} from "../Compression"
+import type {WorkerClient} from "../../main/WorkerClient"
+import type {PublicKeyReturn} from "../../entities/sys/PublicKeyReturn"
+import {PublicKeyReturnTypeRef} from "../../entities/sys/PublicKeyReturn"
+import {SysService} from "../../entities/sys/Services"
+import {createPublicKeyData} from "../../entities/sys/PublicKeyData"
 
 assertWorkerOrNode()
 
-type Attachments = Array<TutanotaFile | DataFile | FileReference>
+type Attachments = $ReadOnlyArray<TutanotaFile | DataFile | FileReference>
 
 export class MailFacade {
-	_login: LoginFacade;
+	_login: LoginFacadeImpl;
 	_file: FileFacade;
 	_phishingMarkers: Set<string>;
 	_deferredDraftId: ?IdTuple; // the mail id of the draft that we are waiting for to be updated via websocket
 	_deferredDraftUpdate: ?Object; // this deferred promise is resolved as soon as the update of the draft is received
 	_entity: EntityClient;
 
-	constructor(login: LoginFacade, fileFacade: FileFacade, entity: EntityClient) {
+	constructor(login: LoginFacadeImpl, fileFacade: FileFacade, entity: EntityClient) {
 		this._login = login
 		this._file = fileFacade
 		this._phishingMarkers = new Set()
@@ -532,6 +536,15 @@ export class MailFacade {
 				this._phishingMarkers.add(marker.marker)
 			}
 		})
+	}
+
+	getRecipientKeyData(mailAddress: string): Promise<?PublicKeyReturn> {
+		return serviceRequest(
+			SysService.PublicKeyService,
+			HttpMethod.GET,
+			createPublicKeyData({mailAddress}),
+			PublicKeyReturnTypeRef
+		).catch(NotFoundError, () => null)
 	}
 }
 

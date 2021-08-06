@@ -194,7 +194,7 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
 	}
 	promise.then(confirmed => {
 		if (confirmed) {
-			let p = worker.setMailAliasStatus(editAliasAttrs.userGroupInfo.group, alias.mailAddress, restore)
+			let p = worker.mailAddressFacade.setMailAliasStatus(editAliasAttrs.userGroupInfo.group, alias.mailAddress, restore)
 			              .catch(LimitReachedError, e => {
 				              Dialog.error("adminMaxNbrOfAliasesReached_msg")
 			              })
@@ -206,7 +206,7 @@ function switchAliasStatus(alias: MailAddressAlias, editAliasAttrs: EditAliasesF
 
 
 export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): Promise<void> {
-	return showProgressDialog("pleaseWait_msg", worker.addMailAlias(aliasFormAttrs.userGroupInfo.group, alias))
+	return showProgressDialog("pleaseWait_msg", worker.mailAddressFacade.addMailAlias(aliasFormAttrs.userGroupInfo.group, alias))
 		.catch(InvalidDataError, () => Dialog.error("mailAddressNA_msg"))
 		.catch(LimitReachedError, () => Dialog.error("adminMaxNbrOfAliasesReached_msg"))
 		.catch(PreconditionFailedError, e => {
@@ -221,7 +221,7 @@ export function addAlias(aliasFormAttrs: EditAliasesFormAttrs, alias: string): P
 
 
 export function updateNbrOfAliases(attrs: EditAliasesFormAttrs): Promise<AliasCount> {
-	return worker.getAliasCounters().then(mailAddressAliasServiceReturn => {
+	return worker.mailAddressFacade.getAliasCounters().then(mailAddressAliasServiceReturn => {
 		const newNbr = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases)
 			- Number(mailAddressAliasServiceReturn.usedAliases))
 		const newNbrToEnable = Math.max(0, Number(mailAddressAliasServiceReturn.totalAliases)

@@ -172,10 +172,11 @@ function renderTermsLabel(): Children {
  * @return Signs the user up, if no captcha is needed or it has been solved correctly
  */
 function signup(mailAddress: string, pw: string, registrationCode: string, isBusinessUse: boolean, isPaidSubscription: boolean, campaign: ?string): Promise<NewAccountData> {
-	return showWorkerProgressDialog(worker, "createAccountRunning_msg", worker.generateSignupKeys().then(keyPairs => {
+	const {customerFacade} = worker
+	return showWorkerProgressDialog(worker, "createAccountRunning_msg", customerFacade.generateSignupKeys().then(keyPairs => {
 		return runCaptcha(mailAddress, isBusinessUse, isPaidSubscription, campaign).then(regDataId => {
 			if (regDataId) {
-				return worker.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code)
+				return customerFacade.signup(keyPairs, AccountType.FREE, regDataId, mailAddress, pw, registrationCode, lang.code)
 				             .then((recoverCode) => {
 					             deleteCampaign()
 					             return {
@@ -186,7 +187,7 @@ function signup(mailAddress: string, pw: string, registrationCode: string, isBus
 				             })
 			}
 		})
-	})).catch(InvalidDataError, e => {
+	})).catch(InvalidDataError, () => {
 		Dialog.error("invalidRegistrationCode_msg")
 	})
 }

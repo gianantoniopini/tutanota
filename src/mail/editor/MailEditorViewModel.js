@@ -239,7 +239,7 @@ export class MailEditorRecipientField implements RecipientInfoBubbleFactory {
 		if (this.model.logins().isInternalUserLoggedIn()) {
 			resolveRecipientInfoContact(recipientInfo, this.model.contacts(), this.model.logins().getUserController().user)
 		} else {
-			resolveRecipientInfo(this.model.worker(), recipientInfo)
+			resolveRecipientInfo(this.model.mailFacade(), recipientInfo)
 				.then(() => m.redraw())
 				.catch(ConnectionError, e => {
 					// we are offline but we want to show the error dialog only when we click on send.

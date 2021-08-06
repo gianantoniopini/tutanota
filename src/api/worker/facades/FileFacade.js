@@ -20,17 +20,18 @@ import {handleRestError} from "../../common/error/RestError"
 import {fileApp} from "../../../native/common/FileApp"
 import {convertToDataFile} from "../../common/DataFile"
 import type {SuspensionHandler} from "../SuspensionHandler"
+import {LoginFacadeImpl} from "./LoginFacade"
 
 assertWorkerOrNode()
 
 const REST_PATH = "/rest/tutanota/filedataservice"
 
 export class FileFacade {
-	_login: LoginFacade;
+	_login: LoginFacadeImpl;
 	_restClient: RestClient;
 	_suspensionHandler: SuspensionHandler;
 
-	constructor(login: LoginFacade, restClient: RestClient, suspensionHandler: SuspensionHandler) {
+	constructor(login: LoginFacadeImpl, restClient: RestClient, suspensionHandler: SuspensionHandler) {
 		this._login = login
 		this._restClient = restClient
 		this._suspensionHandler = suspensionHandler

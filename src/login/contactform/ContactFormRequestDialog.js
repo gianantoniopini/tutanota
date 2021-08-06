@@ -94,8 +94,7 @@ export class ContactFormRequestDialog {
 			                     help: "send_action"
 		                     }).setCloseHandler(() => this._close())
 
-		worker.createContactFormUserGroupData()
-
+		worker.customerFacade.createContactFormUserGroupData()
 	}
 
 	view: Function = () => {
@@ -311,60 +310,57 @@ export class ContactFormRequestDialog {
 					}
 				}
 
-				const sendRequest = worker.createContactFormUser(password, this._contactForm._id, statisticsFields)
-				                          .then(contactFormResult => {
-						                          let userEmailAddress = contactFormResult.responseMailAddress
-						                          return logins.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
-						                                       .then(() => {
-								                                       let p = Promise.resolve()
-								                                       if (cleanedNotificationMailAddress) {
-									                                       let pushIdentifier = createPushIdentifier()
-									                                       pushIdentifier.displayName = client.getIdentifier()
-									                                       pushIdentifier.identifier = neverNull(cleanedNotificationMailAddress)
-									                                       pushIdentifier.language = lang.code
-									                                       pushIdentifier.pushServiceType = PushServiceType.EMAIL
-									                                       pushIdentifier._ownerGroup = logins.getUserController().userGroupInfo.group
-									                                       pushIdentifier._owner = logins.getUserController().userGroupInfo.group // legacy
-									                                       pushIdentifier._area = "0" // legacy
-									                                       p = worker.entityRequest(PushIdentifierTypeRef,
-										                                       HttpMethodEnum.POST,
-										                                       neverNull(logins.getUserController().user.pushIdentifierList).list,
-										                                       null, pushIdentifier);
-								                                       }
-
-								                                       let recipientInfo =
-									                                       createRecipientInfo(contactFormResult.requestMailAddress, "", null)
-
-								                                       return p.then(() => resolveRecipientInfo(worker, recipientInfo)
-									                                       .then(r => {
-										                                       let recipientInfos = [r]
-										                                       return worker.createMailDraft(this._subject,
-											                                       this._editor.getValue(), userEmailAddress, "",
-											                                       recipientInfos, [], [], ConversationType.NEW,
-											                                       null, this._attachments, true, [], MailMethod.NONE
-										                                       )
-										                                                    .then(draft => {
-											                                                    return worker.sendMailDraft(draft, recipientInfos, lang.code)
-										                                                    })
-									                                       })
-									                                       .finally(e => {
-										                                       return logins.logout(false)
-									                                       })
-								                                       )
-							                                       }
-						                                       )
-						                                       .then(() => {
-							                                       return {userEmailAddress}
-						                                       })
-					                          }
-				                          )
+				const sendRequest = this.sendRequest(password, statisticsFields, neverNull(cleanedNotificationMailAddress))
 
 				return showProgressDialog("sending_msg", sendRequest)
-					.then(result => {return showConfirmDialog(result.userEmailAddress)})
+					.then(userEmailAddress => showConfirmDialog(userEmailAddress))
 					.then(() => this._close())
 					.catch(AccessDeactivatedError, e => Dialog.error("contactFormSubmitError_msg"))
 			}
 		})
+	}
+
+	async sendRequest(password: string, statisticsFields: Array<{name: string, value: string}>,
+	                  cleanedNotificationMailAddress: string
+	): Promise<string> {
+		const {mailFacade, customerFacade} = worker
+		const contactFormResult = await customerFacade.createContactFormUser(password, this._contactForm._id, statisticsFields)
+
+		let userEmailAddress = contactFormResult.responseMailAddress
+		await logins.createSession(userEmailAddress, password, client.getIdentifier(), false, false)
+		if (cleanedNotificationMailAddress) {
+			let pushIdentifier = createPushIdentifier({
+				displayName: client.getIdentifier(),
+				identifier: cleanedNotificationMailAddress,
+				language: lang.code,
+				pushServiceType: PushServiceType.EMAIL,
+				_ownerGroup: logins.getUserController().userGroupInfo.group,
+				_owner: logins.getUserController().userGroupInfo.group, // legacy
+				_area: "0", // legacy
+			})
+			await worker.entityRequest(PushIdentifierTypeRef,
+				HttpMethodEnum.POST,
+				neverNull(logins.getUserController().user.pushIdentifierList).list,
+				null, pushIdentifier);
+		}
+
+		let recipientInfo =
+			createRecipientInfo(contactFormResult.requestMailAddress, "", null)
+
+		try {
+			const r = await resolveRecipientInfo(mailFacade, recipientInfo)
+
+			let recipientInfos = [r]
+			const draft = await mailFacade.createDraft(this._subject,
+				this._editor.getValue(), userEmailAddress, "",
+				recipientInfos, [], [], ConversationType.NEW,
+				null, this._attachments, true, [], MailMethod.NONE
+			)
+			await mailFacade.sendDraft(draft, recipientInfos, lang.code)
+		} finally {
+			await logins.logout(false)
+		}
+		return userEmailAddress
 	}
 }
 

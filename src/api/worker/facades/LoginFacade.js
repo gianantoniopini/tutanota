@@ -46,11 +46,7 @@ import {TutanotaPropertiesTypeRef} from "../../entities/tutanota/TutanotaPropert
 import type {User} from "../../entities/sys/User"
 import {UserTypeRef} from "../../entities/sys/User"
 import {defer, neverNull, noOp} from "../../common/utils/Utils"
-import {
-	_loadEntity,
-	HttpMethod,
-	MediaType
-} from "../../common/EntityFunctions"
+import {_loadEntity, HttpMethod, MediaType} from "../../common/EntityFunctions"
 import {assertWorkerOrNode, isAdminClient, isTest} from "../../common/Env"
 import {hash} from "../crypto/Sha256"
 import {createChangePasswordData} from "../../entities/sys/ChangePasswordData"
@@ -87,7 +83,8 @@ import {createWebsocketLeaderStatus} from "../../entities/sys/WebsocketLeaderSta
 import {createEntropyData} from "../../entities/tutanota/EntropyData"
 import {GENERATED_ID_BYTES_LENGTH, isSameId} from "../../common/utils/EntityUtils";
 import {isSameTypeRefByAttr} from "../../common/utils/TypeRef";
-import {GroupTypeRef} from "../../entities/sys/Group"
+import type {TotpSecret} from "../crypto/TotpVerifier"
+import {TotpVerifier} from "../crypto/TotpVerifier"
 
 assertWorkerOrNode()
 
@@ -95,7 +92,45 @@ const RETRY_TIMOUT_AFTER_INIT_INDEXER_ERROR_MS = 30000
 
 export type NewSessionData = {user: User, userGroupInfo: GroupInfo, sessionId: IdTuple, credentials: Credentials}
 
-export class LoginFacade {
+export interface LoginFacade {
+	createSession(mailAddress: string, passphrase: string, clientIdentifier: string, persistentSession: boolean, permanentLogin: boolean
+	): Promise<NewSessionData>;
+
+	createExternalSession(userId: Id, passphrase: string, salt: Uint8Array, clientIdentifier: string, persistentSession: boolean
+	): Promise<NewSessionData>;
+
+	resumeSession(credentials: Credentials, externalUserSalt: ?Uint8Array): Promise<{user: User, userGroupInfo: GroupInfo, sessionId: IdTuple}>;
+
+	deleteSession(accessToken: Base64Url): Promise<void>;
+
+	changePassword(oldPassword: string, newPassword: string): Promise<void>;
+
+	generateTotpSecret(): Promise<TotpSecret>;
+
+	generateTotpCode(time: number, key: Uint8Array): Promise<number>;
+
+	getRecoverCode(password: string): Promise<string>;
+
+	createRecoveryCode(password: string): Promise<string>;
+
+	deleteAccount(password: string, reason: string, takeover: string): Promise<void>;
+
+	cancelCreateSession(): Promise<void>;
+
+	resetSession(): Promise<void>;
+
+	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: ?Hex, targetAccountMailAddress: string): Promise<void>;
+
+	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void>;
+
+	recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void>;
+
+	resetSecondFactors(mailAddress: string, password: string, recoverCode: Hex): Promise<void>;
+
+	decryptUserPassword(userId: string, deviceToken: string, encryptedPassword: string): Promise<string>;
+}
+
+export class LoginFacadeImpl implements LoginFacade {
 	_user: ?User;
 	_userGroupInfo: ?GroupInfo;
 	_accessToken: ?string;
@@ -119,7 +154,7 @@ export class LoginFacade {
 		this._worker = worker
 		this._restClient = restClient
 		this._entity = entity
-		this.reset()
+		this.resetSession()
 
 	}
 
@@ -132,7 +167,7 @@ export class LoginFacade {
 		}
 	}
 
-	reset(): Promise<void> {
+	resetSession(): Promise<void> {
 		this._user = null
 		this._userGroupInfo = null
 		this._accessToken = null
@@ -302,7 +337,7 @@ export class LoginFacade {
 			})
 	}
 
-	cancelCreateSession() {
+	async cancelCreateSession(): Promise<void> {
 		this._loginRequestSessionId = null
 		this._loggingInPromiseWrapper && this._loggingInPromiseWrapper.reject(new CancelledError("login cancelled"))
 	}
@@ -380,7 +415,7 @@ export class LoginFacade {
 			})
 			.then(() => this.storeEntropy())
 			.catch(e => {
-				this.reset()
+				this.resetSession()
 				throw e
 			})
 	}
@@ -645,7 +680,12 @@ export class LoginFacade {
 		if (user == null || user.auth == null) {
 			throw new Error("Invalid state: no user or no user.auth")
 		}
-		const {userEncRecoverCode, recoverCodeEncUserGroupKey, hexCode, recoveryCodeVerifier} = this.generateRecoveryCode(this.getUserGroupKey())
+		const {
+			userEncRecoverCode,
+			recoverCodeEncUserGroupKey,
+			hexCode,
+			recoveryCodeVerifier
+		} = this.generateRecoveryCode(this.getUserGroupKey())
 		const recoverPasswordEntity = createRecoverCode()
 		recoverPasswordEntity.userEncRecoverCode = userEncRecoverCode
 		recoverPasswordEntity.recoverCodeEncUserGroupKey = recoverCodeEncUserGroupKey
@@ -764,6 +804,18 @@ export class LoginFacade {
 
 	isLeader(): boolean {
 		return this._leaderStatus.leaderStatus
+	}
+
+	generateTotpSecret(): Promise<TotpSecret> {
+		return this.getTotpVerifier().then(totp => totp.generateSecret())
+	}
+
+	generateTotpCode(time: number, key: Uint8Array): Promise<number> {
+		return this.getTotpVerifier().then(totp => totp.generateTotp(time, key))
+	}
+
+	getTotpVerifier(): Promise<TotpVerifier> {
+		return Promise.resolve(new TotpVerifier())
 	}
 }
 

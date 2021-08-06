@@ -81,7 +81,7 @@ export function redeemGiftCard(giftCardId: IdTuple, key: string, validCountryCod
 			if (!confirmed) throw new CancelledError("")
 		})
 		.then(() => {
-			return worker.redeemGiftCard(elementIdPart(giftCardId), key)
+			return worker.giftCardFacade.redeemGiftCard(elementIdPart(giftCardId), key)
 			             .catch(NotFoundError, () => { throw new UserError("invalidGiftCard_msg") })
 			             .catch(NotAuthorizedError, e => { throw new UserError(() => e.message) })
 		})
