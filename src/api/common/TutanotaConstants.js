@@ -245,7 +245,7 @@ const SpamRuleValues = Object.values(SpamRuleType)
 export type SpamRuleTypeEnum = $Values<typeof SpamRuleType>;
 
 export function getSpamRuleType(spamRule: EmailSenderListElement): ?SpamRuleTypeEnum {
-	if (spamRule.type in SpamRuleValues) {
+	if (SpamRuleValues.includes(spamRule.type)) {
 		return downcast(spamRule.type)
 	} else {
 		return null
