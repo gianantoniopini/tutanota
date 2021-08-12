@@ -77,7 +77,7 @@ export class InfoBanner implements MComponent<InfoBannerAttrs> {
 
 	renderButtons(buttons: $ReadOnlyArray<?ButtonAttrs>): Children {
 		return buttons.filter(Boolean).map((attrs) => m(ButtonN, {
-			...attrs,
+				...attrs,
 			type: ButtonType.Secondary,
 		}))
 	}

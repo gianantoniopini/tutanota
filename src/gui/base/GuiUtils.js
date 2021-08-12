@@ -11,7 +11,6 @@ import type {DropdownChildAttrs} from "./DropdownN"
 import {attachDropdown} from "./DropdownN"
 import type {MaybeLazy} from "../../api/common/utils/Utils"
 import {assertNotNull, mapLazily, noOp} from "../../api/common/utils/Utils"
-import {promiseMap} from "../../api/common/utils/PromiseUtils"
 import {Dialog} from "./Dialog"
 
 // TODO Use DropDownSelectorN
@@ -38,7 +37,7 @@ export function moreButton(lazyChildren: MaybeLazy<$Promisable<$ReadOnlyArray<?D
 		icon: () => Icons.More
 	}
 	const buttons = mapLazily(lazyChildren, async children => {
-		const resolvedChildren = await children
+		const resolvedChildren: $ReadOnlyArray<?DropdownChildAttrs> = await children
 		return resolvedChildren.map(child => {
 			// If type hasn't been bound on the child it get's set to Dropdown, otherwise we use what is already there
 			if (child == null || typeof child == "string" || child.type) {
