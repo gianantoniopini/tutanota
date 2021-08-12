@@ -126,7 +126,7 @@ import {getCoordsOfMouseOrTouchEvent, moreButton} from "../../gui/base/GuiUtils"
 import type {Link} from "../../misc/HtmlSanitizer"
 import {stringifyFragment} from "../../gui/HtmlUtils"
 import {IndexingNotSupportedError} from "../../api/common/error/IndexingNotSupportedError"
-import {ofClass, promiseMap} from "../../api/common/utils/PromiseUtils"
+import {ofClass} from "../../api/common/utils/PromiseUtils"
 
 assertMainOrNode()
 
@@ -288,10 +288,10 @@ export class MailViewer {
 									detailsExpanded()
 										? m("small.flex.text-break", lang.get("from_label"))
 										: m(".small.flex.text-break.selectable.badge-line-height.flex-wrap.pt-s",
-											{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
-												this._tutaoBadge(),
-												getSenderOrRecipientHeading(this.mail, false)
-											]),
+										{title: getSenderOrRecipientHeadingTooltip(this.mail)}, [
+											this._tutaoBadge(),
+											getSenderOrRecipientHeading(this.mail, false)
+										]),
 									(this._folderText) ? m("small.b.flex.pt", {style: {color: theme.navigation_button}}, this._folderText) : null,
 								]),
 								!this._isAnnouncement() && styles.isUsingBottomNavigation()
@@ -935,8 +935,8 @@ export class MailViewer {
 			externalImageRule === ExternalImageRule.Block
 				? ContentBlockingStatus.AlwaysBlock
 				: (isAllowedAndAuthenticatedExternalSender
-						? ContentBlockingStatus.AlwaysShow
-						: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
+					? ContentBlockingStatus.AlwaysShow
+					: (sanitizeResult.externalContent.length > 0 ? ContentBlockingStatus.Block : ContentBlockingStatus.NoExternalContent)
 				)
 
 		m.redraw()
@@ -1504,9 +1504,7 @@ export class MailViewer {
 				}
 			}
 			// Navigate to the settings menu if they are linked within an email.
-			else if (anchorElement
-				&& isTutanotaTeamMail(this.mail)
-				&& startsWith(anchorElement.href, (anchorElement.origin + "/settings/"))) {
+			else if (anchorElement && isSettingsLink(anchorElement, this.mail)) {
 				let newRoute = anchorElement.href.substr(anchorElement.href.indexOf("/settings/"))
 				m.route.set(newRoute)
 				event.preventDefault()
@@ -1783,4 +1781,12 @@ export class MailViewer {
 
 		return {inlineImageCids, links, externalContent}
 	}
+}
+
+function isSettingsLink({href, origin}, mail): boolean {
+
+	// Electron in windows appends /<drive letter>:/ to relative urls, so we should match with or without
+	const isSettingsHref = !!href.startsWith(origin) && !!href.slice(origin.length).match(/^(\/[A-Z]:)?\/settings\//)
+
+	return isSettingsHref && isTutanotaTeamMail(mail)
 }
