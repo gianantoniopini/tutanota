@@ -51,7 +51,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		this._updateSessions()
 	}
 
-	view(): VirtualElement {
+	view(): Children {
 		const mailAddressAttrs: TextFieldAttrs = {
 			label: "mailAddress_label",
 			value: this._mailAddress,

@@ -11,6 +11,7 @@ import {ButtonN, ButtonType} from "./ButtonN"
 import {NavButtonN} from "./NavButtonN"
 import {mapNullable} from "../../api/common/utils/Utils"
 import {Icons} from "./icons/Icons"
+import type {lazy} from "../../api/common/utils/Utils"
 
 const WARNING_RED = "#ca0606"
 

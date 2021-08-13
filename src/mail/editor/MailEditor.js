@@ -61,6 +61,7 @@ import {showMinimizedMailEditor} from "../view/MinimizedMailEditorOverlay"
 import {SaveStatus} from "../model/MinimizedMailEditorViewModel"
 import {newMouseEvent} from "../../gui/HtmlUtils"
 import {isDataFile, isTutanotaFile} from "../../api/common/utils/FileUtils"
+import type {lazy} from "../../api/common/utils/Utils"
 
 export type MailEditorAttrs = {
 	model: SendMailModel,

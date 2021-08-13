@@ -69,7 +69,7 @@ export class ContactListView {
 			emptyMessage: lang.get("noContacts_msg")
 		})
 
-		this.view = (): VirtualElement => {
+		this.view = (): Children => {
 			return m(this.list)
 		}
 	}

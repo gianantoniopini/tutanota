@@ -66,6 +66,8 @@ interface Message {
 	args: mixed[]
 }
 
+type progressUpdater = (number) => mixed;
+
 export class WorkerClient implements EntityRestInterface {
 	initialized: Promise<void>;
 	_isInitialized: boolean = false

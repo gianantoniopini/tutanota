@@ -3,6 +3,7 @@ import type {InfoLink, TranslationKey} from "../misc/LanguageViewModel"
 import {lang} from "../misc/LanguageViewModel"
 import m from "mithril"
 import {ExpanderButtonN, ExpanderPanelN} from "../gui/base/Expander"
+import type {lazy} from "../api/common/utils/Utils"
 
 
 export type SettingsExpanderAttrs = {|
