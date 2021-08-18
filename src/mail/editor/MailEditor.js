@@ -13,7 +13,14 @@ import {conversationTypeString, getEnabledMailAddressesWithUser, LINE_BREAK} fro
 import {PermissionError} from "../../api/common/error/PermissionError"
 import {locator} from "../../api/main/MainLocator"
 import {logins} from "../../api/main/LoginController"
-import {ALLOWED_IMAGE_FORMATS, ConversationType, FeatureType, Keys, MailMethod} from "../../api/common/TutanotaConstants"
+import {
+	ALLOWED_IMAGE_FORMATS,
+	ConversationType,
+	FeatureType,
+	Keys,
+	MailMethod,
+	MAX_ATTACHMENT_SIZE
+} from "../../api/common/TutanotaConstants"
 import {FileNotFoundError} from "../../api/common/error/FileNotFoundError"
 import {PreconditionFailedError} from "../../api/common/error/RestError"
 import type {DialogHeaderBarAttrs} from "../../gui/base/DialogHeaderBar"
@@ -655,20 +662,34 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 
 	if (mailTo.attach) {
 		const attach = mailTo.attach
-		dataFiles = (await Promise.all((attach).map(uri => fileController.getDataFile(uri))))
+		dataFiles = (await Promise.all((attach).map(uri => fileController.getDataFile(uri)))).filter(Boolean)
 
 		// make sure the user is aware that (and which) files have been attached
-		const keepAttachments = dataFiles.filter(Boolean).length === 0 || await Dialog.confirm(
+		const keepAttachments = dataFiles.length === 0 || await Dialog.confirm(
 			"attachmentWarning_msg",
 			"attachFiles_action",
-			() => dataFiles.map((df, i) => df && m(".text-break.selectable.mt-xs", {
+			() => dataFiles.map((df, i) => m(".text-break.selectable.mt-xs", {
 				title: attach[i]
-			}, df.name)).filter(Boolean)
+			}, df.name))
 		)
 
-		dataFiles = keepAttachments
-			? dataFiles.filter(Boolean)
-			: []
+		const acceptedDataFiles = []
+		if (keepAttachments) {
+			let totalSize = 0
+			const tooBigFiles: Array<string> = []
+			dataFiles.forEach(file => {
+				if (totalSize + Number(file.size) > MAX_ATTACHMENT_SIZE) {
+					tooBigFiles.push(file.name)
+				} else {
+					totalSize += Number(file.size)
+					acceptedDataFiles.push(file)
+				}
+			})
+			if (tooBigFiles.length > 0) {
+				await Dialog.error(() => lang.get("tooBigAttachment_msg") + tooBigFiles.join(", "))
+			}
+		}
+		dataFiles = acceptedDataFiles
 	}
 
 	return newMailEditorFromTemplate(
